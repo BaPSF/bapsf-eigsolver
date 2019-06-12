@@ -1,0 +1,21 @@
+# Compiled python modules.
+*.pyc
+
+# Setuptools distribution folder.
+/dist/
+
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
+
+# Sphinx build directory
+/docs/_build/
+
+# PyCharm specifics
+.idea/*
+
+# macOS Files
+.DS_Store
+
+# venv
+venv/
+build/
