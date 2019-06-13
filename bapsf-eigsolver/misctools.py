@@ -24,7 +24,7 @@ class attrdict(dict):
         """
         Maps attributes to values.
         """
-        if self.__dict__.has_key(item):   # normal attributes handled as usual
+        if item in self.__dict__:   # normal attributes handled as usual
             dict.__setattr__(self, item, value)
         else:
             self.__setitem__(item, value)
@@ -197,13 +197,13 @@ def ppmatrix(M, digits=3, idiv=None, imod=None, trace=False):
             if (not idiv) or (idiv and (i % idiv == imod) and (j % idiv == imod)):
                 if trace:
                     if abs(M[i,j]) > cutoff:
-                        print " * ",
+                        print(" * ", end=' ')
                     else:
-                        print " 0 ",
+                        print(" 0 ", end=' ')
                 else:
-                    print sformat % M[i,j],
+                    print(sformat % M[i,j], end=' ')
         if (not idiv) or (idiv and (i % idiv == imod)):
-            print "\n"
+            print("\n")
 
 # ----------------------------------------------------
 def ppcmatrix(M, digits=3):
@@ -212,8 +212,8 @@ def ppcmatrix(M, digits=3):
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
             sformat = "%%%d.%de + %%%d.%dej" % (digits+8, digits, digits+6, digits)
-            print sformat % (M[i,j].real, M[i,j].imag),
-        print "\n"
+            print(sformat % (M[i,j].real, M[i,j].imag), end=' ')
+        print("\n")
 
 # ----------------------------------------------------
 class DebugClass(object):
@@ -227,7 +227,7 @@ class DebugClass(object):
         self.counter = 0
 
     def p(self, msg=''):
-        print "%s %s %d" % ("DEBUG:", msg, self.counter)
+        print("%s %s %d" % ("DEBUG:", msg, self.counter))
 
     def __call__(self, msg=''):
         self.p(msg)
@@ -380,7 +380,7 @@ class BlockingMouseInput(object):
                                  # not only within the axes
 
         # wait for n clicks
-        print "Waiting for mouse click...",
+        print("Waiting for mouse click...", end=' ')
         sys.stdout.flush()
         counter = 0
         while len(self.clicks) < n:
@@ -402,8 +402,8 @@ class BlockingMouseInput(object):
         if event.inaxes:
             self.clicks.append((event.xdata, event.ydata))
             if self.verbose:
-                print "\rInput %i: %f, %f" % (len(self.clicks),
-                                    event.xdata, event.ydata)
+                print("\rInput %i: %f, %f" % (len(self.clicks),
+                                    event.xdata, event.ydata))
         elif self.anywhere:
             self.clicks.append((0, 0))
 
@@ -459,11 +459,11 @@ class Progress(object):
 
     def update(self, msg='', percent=0):
         import sys
-        print "\r%s%2d%%" % (msg, round(percent)),
+        print("\r%s%2d%%" % (msg, round(percent)), end=' ')
         sys.stdout.flush()
 
     def end(self, msg=''):
         import time
         self.tend = time.clock()
-        print "\r%s (t=%.2gs)" % (msg, (self.tend-self.tstart))
+        print("\r%s (t=%.2gs)" % (msg, (self.tend-self.tstart)))
 

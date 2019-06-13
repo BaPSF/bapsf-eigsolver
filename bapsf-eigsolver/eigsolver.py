@@ -60,10 +60,10 @@ from numpy import *
 from scipy import optimize
 from scipy.interpolate.fitpack2 import UnivariateSpline
 import sympy
-from BOUTppmath import *
+from .BOUTppmath import *
 from matplotlib.pylab import *  #TMP
-from misctools import *
-import profiles
+from .misctools import *
+from . import profiles
 
 
 # ==== Grid and physical parameters ==============================
@@ -104,7 +104,7 @@ class PhysParams(object):
             }
 
         if device.upper() == "LAPD":
-            for (key, val) in self.LAPDset.items():
+            for (key, val) in list(self.LAPDset.items()):
                 setattr(self, key, val)
         # TMP
         self.sw = ones(15)  # switches for different terms in the dispersion relation
@@ -113,13 +113,13 @@ class PhysParams(object):
         self.tparam = {}
         self.pparam = {}
 
-        for (key, val) in keywords.items():
+        for (key, val) in list(keywords.items()):
             # Check that the argument is valid (one from the LAPDset list)
             if key in self.LAPDset:
                 # valid key
                 setattr(self, key, val)
             else:
-                print "Wrong argument name: %s !" % key
+                print("Wrong argument name: %s !" % key)
 
         # Create the grid object, calculate the profiles
         self.grid = profiles.EqGrid(Nr=self.Nr, np=self.np, tp=self.tp, pp=self.pp,
@@ -203,11 +203,11 @@ class PhysParams(object):
         p.phi = zeros(p.grid.phi.shape)
 
         # transform the derivatives from d/dx to d/dr
-        for i in xrange(p.ni.shape[0]):
+        for i in range(p.ni.shape[0]):
             p.ni[i] = p.grid.ni[i]*p.dxdr**i  
-        for i in xrange(p.te.shape[0]):
+        for i in range(p.te.shape[0]):
             p.te[i] = p.grid.te[i]*p.dxdr**i
-        for i in xrange(p.phi.shape[0]):
+        for i in range(p.phi.shape[0]):
             p.phi[i] = p.grid.phi[i]*p.dxdr**i
         p.iLn = -p.ni[1]/p.ni[0]
 
@@ -249,20 +249,20 @@ class PhysParams(object):
         
         # First the independent values
         keys = sorted(self.__dict__.keys())
-        print "\nIndependent parameters:"
+        print("\nIndependent parameters:")
         for key in keys:
             if key in self.LAPDset:
-                print "%10s = %s" % (key, getattr(self, key))
+                print("%10s = %s" % (key, getattr(self, key)))
 
-        print "\nCalculated parameters:"
+        print("\nCalculated parameters:")
         excludelist = ["LAPDset", "grid"]
         for key in keys:
             if not ((key in self.LAPDset)or(key in excludelist)):
                 val = getattr(self, key)
                 if isinstance(val, ndarray): # array
-                    print "%10s = %s, size %s" % (key, "array", val.shape)
+                    print("%10s = %s, size %s" % (key, "array", val.shape))
                 else:
-                    print "%10s = %s" % (key, val)
+                    print("%10s = %s" % (key, val))
 
 # -----------------------------------------------------------
 
@@ -313,11 +313,11 @@ def blendparams(p1, p2, frac, flog=False):
         # Assume rmin/rmax don't change, but np/tp/pp do. Mix the ni/te/phi0 profiles
         p.grid  = profiles.EqGrid(Nr=p1.Nr)  # create new grid object  #TMP: add param argument
 
-        for i in xrange(p.ni.shape[0]):
+        for i in range(p.ni.shape[0]):
             p.grid.ni[i]  = f(p1.grid.ni[i], p2.grid.ni[i], frac)
-        for i in xrange(p.te.shape[0]):
+        for i in range(p.te.shape[0]):
             p.grid.te[i]  = f(p1.grid.te[i], p2.grid.te[i], frac)
-        for i in xrange(p.phi.shape[0]):
+        for i in range(p.phi.shape[0]):
             p.grid.phi[i] = f(p1.grid.phi[i], p2.grid.phi[i], frac)
 
 
@@ -358,7 +358,7 @@ class SymbolicEq(object):
         b0 = [0,0,-1]  # unit vector in B direction
                        # Note: in LAPD geometry, the axial field has to be in the negative
                        # direction to be consistent with BOUT
-        print "b0=", b0               
+        print("b0=", b0)               
 
         # Coordinates and time
         r, th, z, t  = sympy.symbols('r theta z t') # Coordinates and time
@@ -419,7 +419,7 @@ class SymbolicEq(object):
         d = attrdict()
         for arg in args[:-1]:
             d[arg.name] = arg
-        for key, item in args[-1].items():
+        for key, item in list(args[-1].items()):
             d[key] = item
 
         return d
@@ -428,8 +428,8 @@ class SymbolicEq(object):
     def build_symb_eq(self, p):
         """Construct the linear equations for all variables (N,vpar,phi)"""
     
-        print "Constructing the dispersion relation in symbolic form..."
-        print "Phi-equation is modified to exactly reproduce BOUT vorticity equation."
+        print("Constructing the dispersion relation in symbolic form...")
+        print("Phi-equation is modified to exactly reproduce BOUT vorticity equation.")
 
 
 
@@ -475,7 +475,7 @@ class SymbolicEq(object):
 
 
         # BOUT vorticity equation: Alternative formulation
-        print "Using BOUT vorticity equation."
+        print("Using BOUT vorticity equation.")
         Phi_eq = (
                p.vort.diff(p.t) 
              + (p.fN*p.fvpar).diff(p.z)
@@ -501,7 +501,7 @@ class SymbolicEq(object):
 #        print "V: \n", Lin_eq[1]
 #        print "P: \n", Lin_eq[2]
 
-        print "Done"
+        print("Done")
 
         return Lin_eq
 
@@ -676,7 +676,7 @@ class EigSolve(object):
         self.MRHS = zeros((self.NTOT,self.NTOT), complex)
         
 
-        print "Constructing the finite differences matrix..."
+        print("Constructing the finite differences matrix...")
         for i_eq in range(self.NVAR):
             for i_var in range(self.NVAR):
                 for ir in range(1,self.Nr-1):
@@ -723,9 +723,9 @@ class EigSolve(object):
             self.MRHS[self.i_lkp(ir,i_var), self.i_lkp(ir,i_var)] = 1
 
                 
-        print "Solving the linear system..."
+        print("Solving the linear system...")
         self.MTOT = dot(linalg.inv(self.MRHS), self.MLHS)
-        print "Done"
+        print("Done")
 
 #        from misctools import ppmatrix
 #        print "Re(MTOT):"
@@ -738,8 +738,8 @@ class EigSolve(object):
         self.alleigval, self.alleigvec = eig(self.MTOT)
 
         # Sort all eigenvalues/vectors by the growth rate
-        s_index = range(self.Nr*self.NVAR)
-        vv = zip(self.alleigval, s_index)
+        s_index = list(range(self.Nr*self.NVAR))
+        vv = list(zip(self.alleigval, s_index))
 
 
         # Sorting with lambda:
@@ -774,7 +774,7 @@ class EigSolve(object):
                      "absomega_asc" : fc_absomega_asc}[sortby]
             vv_sorted = sorted(vv, fsort)  # sort the eigenvalues according to sortby parameter
         except KeyError:
-            print "Error: Wrong sort parameter!"
+            print("Error: Wrong sort parameter!")
             vv_sorted = vv  # don't sort if sortby is wrong
 
 
@@ -783,12 +783,12 @@ class EigSolve(object):
 
         self.alleigval, self.alleigvec = self.alleigval[s_index], self.alleigvec[:,s_index] 
         self.pvalues.omega0 = self.alleigval[-1]
-        print "Fastest growing mode: omega=", self.alleigval[-1]
+        print("Fastest growing mode: omega=", self.alleigval[-1])
 
 
-        self.eigN    = self.alleigvec[range(0,self.Nr*self.NVAR,  self.NVAR),:] # eigN[ir, eigpos]
-        self.eigVpar = self.alleigvec[range(1,self.Nr*self.NVAR+1,self.NVAR),:]
-        self.eigPhi  = self.alleigvec[range(2,self.Nr*self.NVAR+2,self.NVAR),:]
+        self.eigN    = self.alleigvec[list(range(0,self.Nr*self.NVAR,  self.NVAR)),:] # eigN[ir, eigpos]
+        self.eigVpar = self.alleigvec[list(range(1,self.Nr*self.NVAR+1,self.NVAR)),:]
+        self.eigPhi  = self.alleigvec[list(range(2,self.Nr*self.NVAR+2,self.NVAR)),:]
 
         self.crossphase = self.ni_phi_phase()
         self.avgphase = sqrt((self.crossphase[1:-1,-1]**2).mean())
@@ -930,7 +930,7 @@ def plot_omega(esolver, ommin=None, ommax=None, interactive=False, pos=-1):
         # Choose the eigenvalue and plot the corresponding eigenfunction
         # Repeat the loop until clicked on the same value twice
 
-        print "Click on the eigenvalue to plot the solution. To exit: choose the same value twice."
+        print("Click on the eigenvalue to plot the solution. To exit: choose the same value twice.")
         pos_prev = len(esolver.alleigval)-1
         pos_click = 0
         while pos_prev != pos_click:
@@ -942,7 +942,7 @@ def plot_omega(esolver, ommin=None, ommax=None, interactive=False, pos=-1):
 
             # Find which eigenvalue was clicked
             pos_click = abs(esolver.alleigval - om0).argmin() # position of the closest to om0 value
-            print "Clicked: omega=", esolver.alleigval[pos_click]
+            print("Clicked: omega=", esolver.alleigval[pos_click])
     
             plot_eigenvalues(pos_click)
             plot_eigenvectors(pos_click)
@@ -966,11 +966,11 @@ def trace_root(equation, p1, p2, nfrac=100, accumulate=1.,
 
     start_trace = time.clock()
 
-    for i in xrange(nfrac):
+    for i in range(nfrac):
         
         frac=(i/(nfrac-1.))**accumulate
 
-        print "Tracing: frac=%10.3e   (%d/%d)" % (frac, i, nfrac)
+        print("Tracing: frac=%10.3e   (%d/%d)" % (frac, i, nfrac))
         
         p = blendparams(p1,p2,frac, flog=flog)
         esolver = EigSolve(equation, p)
@@ -982,9 +982,9 @@ def trace_root(equation, p1, p2, nfrac=100, accumulate=1.,
 
         # stop if looking for the max growth rate
         if (max and (p.omega0.imag < omega_last.imag)):
-            print 'Prev. step growth rate (gamma/OmCI): ' % omega_last.imag
-            print 'Last  step growth rate (gamma/OmCI): ' % p.omega0.imag
-            print 'Max growth rate found, exiting...'
+            print('Prev. step growth rate (gamma/OmCI): ' % omega_last.imag)
+            print('Last  step growth rate (gamma/OmCI): ' % p.omega0.imag)
+            print('Max growth rate found, exiting...')
             break 
         omega_last = p.omega0
         om = p.omega0
@@ -1022,7 +1022,7 @@ def trace_root(equation, p1, p2, nfrac=100, accumulate=1.,
     p2.update_params()
 
     end_trace = time.clock()
-    print "Total trace time: %.2gs" % (end_trace-start_trace)
+    print("Total trace time: %.2gs" % (end_trace-start_trace))
 
     if plotparam:
         # Save the scan data in ascii file
@@ -1033,18 +1033,18 @@ def trace_root(equation, p1, p2, nfrac=100, accumulate=1.,
 
         # Find the fastest growing mode
         a=p_gamma.argmax()
-        print "Fastest mode: %s=%.3e,  omega=%.3e,  gamma=%.3e" % (plotparam, 
-                                                  p_param[a], p_omega[a], p_gamma[a])
+        print("Fastest mode: %s=%.3e,  omega=%.3e,  gamma=%.3e" % (plotparam, 
+                                                  p_param[a], p_omega[a], p_gamma[a]))
 
     return scanres
 
 # -----------------------------------------------------------
 def save_scan(scanres, fname='trace_scan.dat'):
     """ Save the results of a scan (from trace_root function) """
-    import cPickle
+    import pickle
 
     f = open(fname, 'w')
-    keys = scanres[0].LAPDset.keys() + ['omega0','ni','te', 
+    keys = list(scanres[0].LAPDset.keys()) + ['omega0','ni','te', 
                  'phi','rho_s','kpar','omExB0','rmin','rmax',
                  'spar','Om_CI','omstar', 'phi0',
                  'alleigval', 'eigN', 'eigVpar', 'eigPhi', 'crossphase', 'avgphase'] # choose the data to save
@@ -1054,17 +1054,17 @@ def save_scan(scanres, fname='trace_scan.dat'):
         val = array([getattr(p,key) for p in scanres])  # extract the data from scanres
         data[key] = val
 
-    cPickle.dump(data, f)
+    pickle.dump(data, f)
         
     f.close()
 
 # -----------------------------------------------------------
 def load_scan(fname='trace_scan.dat'):
     """ Load the results of a scan """
-    import cPickle
+    import pickle
 
     f = open(fname, 'r')
-    data = cPickle.load(f)
+    data = pickle.load(f)
     f.close()
     return data # list of dictionaries, data only (no functions)
 
@@ -1078,28 +1078,28 @@ def combine_scans(*d, **darg):
     
     sortparam = None
     finclude = None
-    for key, val in darg.items():
+    for key, val in list(darg.items()):
         if key == 'sortparam':
             sortparam = val
         if key == 'finclude':
             finclude = val
 
     dnew = d[0]
-    for key in d[0].keys():
+    for key in list(d[0].keys()):
         for darg in d[1:]:
             dnew[key] = append(dnew[key], darg[key])
 
     # Sort if asked
     if sortparam:
         idx = argsort(dnew[sortparam])
-        for key in dnew.keys():
+        for key in list(dnew.keys()):
             dnew[key] = dnew[key][idx]
 
     # Filter elements if asked
     if finclude and sortparam:
         idx = finclude(dnew[sortparam])  # get the indices of all elements that 
                                          # satisfy the finclude condition
-        for key in dnew.keys():
+        for key in list(dnew.keys()):
             dnew[key] = dnew[key][idx]
 
     return dnew
@@ -1129,7 +1129,7 @@ class BlockingMouseInput(object):
         self.verbose = verbose
 
         # wait for n clicks
-        print "Waiting for mouse click...",
+        print("Waiting for mouse click...", end=' ')
         sys.stdout.flush()
         counter = 0
         while len(self.clicks) < n:
@@ -1151,8 +1151,8 @@ class BlockingMouseInput(object):
         if event.inaxes:
             self.clicks.append((event.xdata, event.ydata))
             if self.verbose:
-                print "\rInput %i: %f, %f" % (len(self.clicks),
-                                    event.xdata, event.ydata)
+                print("\rInput %i: %f, %f" % (len(self.clicks),
+                                    event.xdata, event.ydata))
 
  
 # -----------------------------------------------------------

@@ -1,7 +1,8 @@
-from __future__ import division
+
 
 import eigsolver
-reload(eigsolver)
+import imp
+imp.reload(eigsolver)
 
 metric = 'cyl'   # choose cylindrical ('cyl') or slab ('cart') geometry
 equation = eigsolver.SymbolicEq(metric) # Derive the eigenvalue equation in symbolic form
