@@ -19,7 +19,7 @@ def ddy_4D(fval, du):
 
 
 
-import numpy as np 
+import numpy
 
 # -----------------------------------------------------------
 # Finite difference schemes as defined in BOUT
@@ -63,7 +63,7 @@ def VDDX_C2(vc,fc,fm,fp,fmm,fpp):
 
 #/*upwind, 1st order*/
 def VDDX_U1(vc,fc,fm,fp,fmm,fpp):
-    return np.where(vc > 0., (vc)*((fc)-(fm)), (vc)*((fp)-(fc)) )
+    return numpy.where(vc > 0., (vc)*((fc)-(fm)), (vc)*((fp)-(fc)) )
 
 #/*central, 4th order*/
 def VDDX_C4(vc,fc,fm,fp,fmm,fpp):
@@ -71,7 +71,7 @@ def VDDX_C4(vc,fc,fm,fp,fmm,fpp):
 
 #/*upwind, 4th order*/
 def VDDX_U4(vc,fc,fm,fp,fmm,fpp):
-    np.where (vc > 0.0, (vc)*(4.*(fp) - 12.*(fm) + 2.*(fmm) + 6.*(fc))/12., 
+    numpy.where (vc > 0.0, (vc)*(4.*(fp) - 12.*(fm) + 2.*(fmm) + 6.*(fc))/12., 
                      (vc)*(-4.*(fm) + 12.*(fp) - 2.*(fpp) - 6.*(fc))/12.)
 
 # -----------------------------------------------------------
@@ -87,7 +87,7 @@ def addzguard(fval,du):
     #       
     
     # Add extra 4 points in theta direction
-    flarge = np.zeros(fval.shape + np.array([0,0,4,0]), fval.dtype)
+    flarge = numpy.zeros(fval.shape + numpy.array([0,0,4,0]), fval.dtype)
     flarge[:,:,2:-2,:] = fval[:,:,:,:].copy()
     # Assign periodic values. BOUT convention: open periodic: iz=0 <-> nz (last)
     #    flarge[:,:,2,:]  <-> fval[:,:,-1,:]
@@ -114,9 +114,9 @@ def grad_cyl_4D(fval, du):
 #
 
     # Initialize grad4D as a list (r,theta,z) of 4D arrays of the same size as fval
-    grad4D = [np.zeros(fval.shape, fval.dtype),  # r 
-              np.zeros(fval.shape, fval.dtype),  # theta
-              np.zeros(fval.shape, fval.dtype)]  # z
+    grad4D = [numpy.zeros(fval.shape, fval.dtype),  # r 
+              numpy.zeros(fval.shape, fval.dtype),  # theta
+              numpy.zeros(fval.shape, fval.dtype)]  # z
 
 
     # Call syntax:  DDX_C4(f[ix,iy,iz,it],f[ix-1,iy,iz,it],f[ix+1,iy,iz,it], $
@@ -142,7 +142,7 @@ def grad_cyl_4D(fval, du):
     grad4D[1][:,:,:,:] = (
             DDX_C4(fval_wg[:,:,2:-2,:], fval_wg[:,:,1:-3,:], fval_wg[:,:,3:-1,:], 
                                         fval_wg[:,:,0:-4,:], fval_wg[:,:,4:  ,:])
-                                               / (du.dtheta*du.rxy[:,:,np.newaxis,np.newaxis]))
+                                               / (du.dtheta*du.rxy[:,:,numpy.newaxis,numpy.newaxis]))
 
     return grad4D
 
@@ -163,8 +163,8 @@ def grad_perp_cyl_4D(fval, du):
 #
 
     # Initialize grad4D as a list (r,theta,z) of 4D arrays of the same size as fval
-    grad4D = [np.zeros(fval.shape, fval.dtype),  # r 
-              np.zeros(fval.shape, fval.dtype)]  # theta
+    grad4D = [numpy.zeros(fval.shape, fval.dtype),  # r 
+              numpy.zeros(fval.shape, fval.dtype)]  # theta
               
 
 
@@ -191,7 +191,7 @@ def grad_perp_cyl_4D(fval, du):
     grad4D[1][:,:,:,:] = (
             DDX_C4(fval_wg[:,:,2:-2,:], fval_wg[:,:,1:-3,:], fval_wg[:,:,3:-1,:], 
                                         fval_wg[:,:,0:-4,:], fval_wg[:,:,4:  ,:])
-                                               / (du.dtheta*du.rxy[:,:,np.newaxis,np.newaxis]))
+                                               / (du.dtheta*du.rxy[:,:,numpy.newaxis,numpy.newaxis]))
 
     return grad4D
 
@@ -210,7 +210,7 @@ def Div_perp_cyl_4D(vval, du):
 #
 
     # Initialize res4D as an array of the same size as vval[0]
-    res4D = np.zeros(vval[0].shape, vval[0].dtype)
+    res4D = numpy.zeros(vval[0].shape, vval[0].dtype)
 
     # Radial/parallel derivatives are not calculated in guard points (2 on each size)
 
@@ -225,7 +225,7 @@ def Div_perp_cyl_4D(vval, du):
                                         vval[0][0:-4,:,:,:], vval[0][4:  ,:,:,:])
                                                / du.dr_n
          +
-            vval[0][2:-2,:,:,:] / du.rxy[2:-2,:,np.newaxis,np.newaxis])
+            vval[0][2:-2,:,:,:] / du.rxy[2:-2,:,numpy.newaxis,numpy.newaxis])
                            
 
     # Theta derivative of vval[1]
@@ -235,7 +235,7 @@ def Div_perp_cyl_4D(vval, du):
     res4D[:,:,:,:] += (
             DDX_C4(fval_wg[:,:,2:-2,:], fval_wg[:,:,1:-3,:], fval_wg[:,:,3:-1,:], 
                                         fval_wg[:,:,0:-4,:], fval_wg[:,:,4:  ,:])
-                                               / (du.dtheta*du.rxy[:,:,np.newaxis,np.newaxis]))
+                                               / (du.dtheta*du.rxy[:,:,numpy.newaxis,numpy.newaxis]))
 
     return res4D
 
@@ -256,7 +256,7 @@ def advec_cyl_4D(vval, fval, du, order = 'VDDX_U1'):
 #
 
 
-    advec4D = np.zeros(fval.shape, fval.dtype)
+    advec4D = numpy.zeros(fval.shape, fval.dtype)
 
     # For theta derivatives: add theta guard cells to the 4D array
     fval_wg = addzguard(fval, du)
@@ -275,7 +275,7 @@ def advec_cyl_4D(vval, fval, du, order = 'VDDX_U1'):
             VDDX_U1(vval[1][2:-2,:,:,:],
                     fval_wg[2:-2,:,2:-2,:], fval_wg[2:-2,:,1:-3,:], fval_wg[2:-2,:,3:-1,:], 
                     fval_wg[2:-2,:,0:-4,:], fval_wg[2:-2,:,4:  ,:])
-                    / (du.dtheta*du.rxy[2:-2,:,np.newaxis,np.newaxis])
+                    / (du.dtheta*du.rxy[2:-2,:,numpy.newaxis,numpy.newaxis])
             )
 
     if order == 'VDDX_C4':
@@ -291,12 +291,12 @@ def advec_cyl_4D(vval, fval, du, order = 'VDDX_U1'):
             VDDX_C4(vval[1][2:-2,:,:,:],
                     fval_wg[2:-2,:,2:-2,:], fval_wg[2:-2,:,1:-3,:], fval_wg[2:-2,:,3:-1,:], 
                     fval_wg[2:-2,:,0:-4,:], fval_wg[2:-2,:,4:  ,:])
-                    / (du.dtheta*du.rxy[2:-2,:,np.newaxis,np.newaxis])
+                    / (du.dtheta*du.rxy[2:-2,:,numpy.newaxis,numpy.newaxis])
             )
 
 
 
-    rvrfval = vval[0]*fval*du.rxy[:,:,np.newaxis,np.newaxis]
+    rvrfval = vval[0]*fval*du.rxy[:,:,numpy.newaxis,numpy.newaxis]
     vthfval = vval[1]*fval
     vthfval_wg = addzguard(vthfval, du)
 
@@ -306,13 +306,13 @@ def advec_cyl_4D(vval, fval, du, order = 'VDDX_U1'):
             #Radial derivative
             DDX_L1(rvrfval[2:-2,:,:,:], rvrfval[1:-3,:,:,:], rvrfval[3:-1,:,:,:], 
                     rvrfval[0:-4,:,:,:], rvrfval[4:  ,:,:,:])
-                    / (du.dr_n*du.rxy[2:-2,:,np.newaxis,np.newaxis])
+                    / (du.dr_n*du.rxy[2:-2,:,numpy.newaxis,numpy.newaxis])
 
             +
             #Azimuthal derivative
             DDX_L1(vthfval_wg[2:-2,:,2:-2,:], vthfval_wg[2:-2,:,1:-3,:], vthfval_wg[2:-2,:,3:-1,:], 
                     vthfval_wg[2:-2,:,0:-4,:], vthfval_wg[2:-2,:,4:  ,:])
-                    / (du.dtheta*du.rxy[2:-2,:,np.newaxis,np.newaxis])
+                    / (du.dtheta*du.rxy[2:-2,:,numpy.newaxis,numpy.newaxis])
             ) 
         
 
@@ -378,7 +378,7 @@ def ddt_4D(fval, du):
 #        time derivative of fval
 #
 
-    res4D = np.zeros(fval.shape, fval.dtype)
+    res4D = numpy.zeros(fval.shape, fval.dtype)
 
     res4D[:,:,:,2:-2] = (
         DDX_C4(fval[:,:,:,2:-2], fval[:,:,:,1:-3], fval[:,:,:,3:-1], 
@@ -402,7 +402,7 @@ def ddx_4D(fval, du, order='DDX_C4'):
 #
 
     # Initialize rad4D as an array of the same size as fval
-    res4D = np.zeros(fval.shape, fval.dtype)
+    res4D = numpy.zeros(fval.shape, fval.dtype)
 
     # Radial/parallel derivatives are not calculated in guard points (2 on each size)
 
@@ -459,7 +459,7 @@ def d2dx2_4D(fval, du, order='D2DX2_C4'):
 #
 
     # Initialize rad4D as an array of the same size as fval
-    res4D = np.zeros(fval.shape, fval.dtype)
+    res4D = numpy.zeros(fval.shape, fval.dtype)
 
     # Radial/parallel derivatives are not calculated in guard points (2 on each size)
 
@@ -500,7 +500,7 @@ def Delp2perp_4D(fval, du, order='D2DX2_C4'):
 #
 
     # Initialize rad4D as an array of the same size as fval
-    res4D = np.zeros(fval.shape, fval.dtype)
+    res4D = numpy.zeros(fval.shape, fval.dtype)
 
 
     # Radial/parallel derivatives are not calculated in guard points (2 on each size)
@@ -521,10 +521,10 @@ def Delp2perp_4D(fval, du, order='D2DX2_C4'):
         res4D[2:-2,:,:,:] = (
             D2DX2_C4(fval[2:-2,:,:,:], fval[1:-3,:,:,:], fval[3:-1,:,:,:], 
                                      fval[0:-4,:,:,:], fval[4:,:,:,:])/ du.dr_n**2
-            +1./(du.rxy[2:-2,:,np.newaxis,np.newaxis])*DDX_C4(fval[2:-2,:,:,:], fval[1:-3,:,:,:], fval[3:-1,:,:,:], 
+            +1./(du.rxy[2:-2,:,numpy.newaxis,numpy.newaxis])*DDX_C4(fval[2:-2,:,:,:], fval[1:-3,:,:,:], fval[3:-1,:,:,:], 
                                      fval[0:-4,:,:,:], fval[4:,:,:,:])/ (du.dr_n)
             + D2DX2_C4(fval_wg[2:-2,:,2:-2,:], fval_wg[2:-2,:,1:-3,:], fval_wg[2:-2,:,3:-1,:], 
-                                        fval_wg[2:-2,:,0:-4,:], fval_wg[2:-2,:,4:  ,:])/ ((du.dtheta**2)*(du.rxy[2:-2,:,np.newaxis,np.newaxis]**2)))
+                                        fval_wg[2:-2,:,0:-4,:], fval_wg[2:-2,:,4:  ,:])/ ((du.dtheta**2)*(du.rxy[2:-2,:,numpy.newaxis,numpy.newaxis]**2)))
 
                 
     return res4D
@@ -544,7 +544,7 @@ def ddy_4D_L1(fval, du):
 #
 
     # Initialize rad4D as an array of the same size as fval
-    res4D = np.zeros(fval.shape, fval.dtype)
+    res4D = numpy.zeros(fval.shape, fval.dtype)
 
     # Parallel derivatives are not calculated in guard points (2 on each size)
 
@@ -574,7 +574,7 @@ def ddy_4D_R1(fval, du):
 #
 
     # Initialize rad4D as an array of the same size as fval
-    res4D = np.zeros(fval.shape, fval.dtype)
+    res4D = numpy.zeros(fval.shape, fval.dtype)
 
     # Parallel derivatives are not calculated in guard points (2 on each size)
 
@@ -605,7 +605,7 @@ def ddz_4D(fval, du):
 #
 
     # Initialize rad4D as an array of the same size as fval
-    res4D = np.zeros(fval.shape, fval.dtype)
+    res4D = numpy.zeros(fval.shape, fval.dtype)
 
     # Radial/parallel derivatives are not calculated in guard points (2 on each size)
 
@@ -632,7 +632,7 @@ def radial_Average(fval,du,order = 'trapezoid'):
     
     if order == 'trapezoid':
         #Trapezoid Rule
-        res2D = np.zeros(fval.shape, fval.dtype)
+        res2D = numpy.zeros(fval.shape, fval.dtype)
 
         for ix in range(1,fval.shape[0]):
             res2D[ix,:] = fval[0,:]+fval[ix,:]
@@ -643,7 +643,7 @@ def radial_Average(fval,du,order = 'trapezoid'):
 
     if order == 'rectangle':
         #Simple rectangle rule
-        res2D = np.zeros(fval.shape, fval.dtype)
+        res2D = numpy.zeros(fval.shape, fval.dtype)
 
         for ix in range(1,fval.shape[0]):
             res2D[ix,:] = fval[1:ix+1,:].sum(0)*du.dr_n
@@ -797,7 +797,7 @@ from scipy.special import erf
 
 def int0_N(x,w):
     """Gaussian N(x,w)"""
-    return np.exp(-(x*x)/(w*w)) / (np.sqrt(np.pi)*w)
+    return numpy.exp(-(x*x)/(w*w)) / (numpy.sqrt(numpy.pi)*w)
 
 def int1_N(x,w):
     """Int N(x,w) dx"""
@@ -805,12 +805,12 @@ def int1_N(x,w):
 
 def int2_N(x,w):
     """Int Int N(x,w) dx"""
-    return 0.5* ( np.exp(-(x*x)/(w*w))*w / np.sqrt(np.pi)
+    return 0.5* ( numpy.exp(-(x*x)/(w*w))*w / numpy.sqrt(numpy.pi)
                 + x*erf(x/w) )
 
 def int3_N(x,w):
     """Int Int Int N(x,w) dx"""
-    return 0.125* ( 2.*np.exp(-(x*x)/(w*w))*w*x / np.sqrt(np.pi)
+    return 0.125* ( 2.*numpy.exp(-(x*x)/(w*w))*w*x / numpy.sqrt(numpy.pi)
                   + (w*w+2.*x*x)*erf(x/w) )
 
 # -----------------------------------------------------------
@@ -839,7 +839,7 @@ def TriDiagDet(a,b,c):
     """
 
     N = a.shape[0]
-    D = np.zeros(N, dtype=complex)
+    D = numpy.zeros(N, dtype=complex)
 
     D[0] = a[0]   # a_1
     D[1] = a[0]*a[1] - b[0]*c[0]    # det(A_{1,2}) = a_1*a_2 - c_1*b_1

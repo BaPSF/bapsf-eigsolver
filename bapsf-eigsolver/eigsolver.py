@@ -54,16 +54,15 @@ eigsolver.plot_omega(esolver)  # Plot profiles and eigenmodes
 
 """
 
-import numpy as np
-# from numpy import *
+import numpy
 from scipy import optimize
 from scipy.interpolate.fitpack2 import UnivariateSpline
 import sympy
-from . import BOUTppmath as bout
+import BOUTppmath as bout
 import matplotlib.pyplot as plt  #TMP
-from . import misctools as tools
+import misctools as tools
 import sys
-from . import profiles
+import profiles
 
 
 # ==== Grid and physical parameters ==============================
@@ -107,7 +106,7 @@ class PhysParams(object):
             for (key, val) in list(self.LAPDset.items()):
                 setattr(self, key, val)
         # TMP
-        self.sw = np.ones(15)  # switches for different terms in the dispersion relation
+        self.sw = numpy.ones(15)  # switches for different terms in the dispersion relation
         self.param = {}  # additional parameters for profile control 
         self.nparam = {}
         self.tparam = {}
@@ -122,9 +121,9 @@ class PhysParams(object):
                 print("Wrong argument name: %s !" % key)
 
         # Create the grid object, calculate the profiles
-        self.grid = profiles.EqGrid(Nr=self.Nr, dp=self.np, tp=self.tp, pp=self.pp,
+        self.grid = profiles.EqGrid(Nr=self.Nr, np=self.np, tp=self.tp, pp=self.pp,
                            param=self.param, 
-                           dparam=self.nparam, tparam=self.tparam, pparam=self.pparam)
+                           nparam=self.nparam, tparam=self.tparam, pparam=self.pparam)
 
         self.update_params()
         self.omega0 = 1.e-2+1.e-2j
@@ -149,7 +148,7 @@ class PhysParams(object):
         p = self  # just to avoid replacing p. everywhere
         p.I = ii  # needed for lambdify function
         p.mu   = p.aa*1836.  # Mi/me
-        Cs   = 9.79e3*np.sqrt(p.te0/p.aa)   # ion sound velocity, m/s
+        Cs   = 9.79e3*numpy.sqrt(p.te0/p.aa)   # ion sound velocity, m/s
         p.Om_CI = 9.58e3/p.aa*p.b0*1.e4  # ion gyrofrequency, 1/s
         p.rho_s = Cs/p.Om_CI # [m]
 
@@ -164,10 +163,10 @@ class PhysParams(object):
         p.rmax = p.rmax_m/p.rho_s
         p.Ln = p.Ln_m/p.rho_s
         p.Lz = p.Lz_m/p.rho_s
-        p.kpar = 2.*np.pi/p.Lz  # parallel wave number, rho_s
+        p.kpar = 2.*numpy.pi/p.Lz  # parallel wave number, rho_s
         p.k = p.kpar*p.nz
 
-        kx = p.nr*2.*np.pi/(p.rmax-p.rmin)  # normalized to 1/rho_s
+        kx = p.nr*2.*numpy.pi/(p.rmax-p.rmin)  # normalized to 1/rho_s
         ky = p.mtheta/(p.rmin+p.rmax)*2. # estimate, normilized to 1/rho_s
 
         p.omstar = ky/p.Ln   # normalized to Om_CI, dimensionless
@@ -185,7 +184,7 @@ class PhysParams(object):
 
         # Set the nu_ei radial profile (normalized to OmCI)
         #logLam=24.D - alog(sqrt(p.n0*p.ni_arr*1.D-6)/p.Te)
-        logLam=24. - np.log(np.sqrt(p.n0*1.e-6)/p.te0)  # constant logLam - to agree with BOUT formulation
+        logLam=24. - numpy.log(numpy.sqrt(p.n0*1.e-6)/p.te0)  # constant logLam - to agree with BOUT formulation
         p.logLam = logLam
 
         p.nuei_arr=(p.zeff*2.91e-6*(p.n0*p.grid.ni[0]*1.e-6)*logLam 
@@ -198,9 +197,9 @@ class PhysParams(object):
         p.spar = p.mu/p.nuei_arr[0]*p.nz**2*p.kpar**2/(kx**2+ky**2)  # normalized to Om_CI, dimensionless
 
         # Calculate the radial profiles with the correct normalizations
-        p.ni  = np.zeros(p.grid.ni.shape)
-        p.te  = np.zeros(p.grid.te.shape)
-        p.phi = np.zeros(p.grid.phi.shape)
+        p.ni  = numpy.zeros(p.grid.ni.shape)
+        p.te  = numpy.zeros(p.grid.te.shape)
+        p.phi = numpy.zeros(p.grid.phi.shape)
 
         # transform the derivatives from d/dx to d/dr
         for i in range(p.ni.shape[0]):
@@ -213,10 +212,10 @@ class PhysParams(object):
 
         # Calculate ion-ion viscosity (Braginskii expression eta_1)
         ZZ=1.
-        lambda_ii = 23.-np.log(ZZ**3*np.sqrt(2.*p.n0*1.e-6)/p.ti0**1.5)
+        lambda_ii = 23.-numpy.log(ZZ**3*numpy.sqrt(2.*p.n0*1.e-6)/p.ti0**1.5)
 
-        nu_ii = 4.78e-8 * ZZ**4 / np.sqrt(p.aa) * p.n0*1.e-6*p.ni[0] * p.logLam / p.ti0**1.5
-        nu_ii = 4.78e-8 * ZZ**4 / np.sqrt(p.aa) * p.n0*1.e-6*p.ni[0] * lambda_ii / p.ti0**1.5
+        nu_ii = 4.78e-8 * ZZ**4 / numpy.sqrt(p.aa) * p.n0*1.e-6*p.ni[0] * p.logLam / p.ti0**1.5
+        nu_ii = 4.78e-8 * ZZ**4 / numpy.sqrt(p.aa) * p.n0*1.e-6*p.ni[0] * lambda_ii / p.ti0**1.5
                 # nu_ii in 1/s
         p.nu_ii = nu_ii
  
@@ -259,7 +258,7 @@ class PhysParams(object):
         for key in keys:
             if not ((key in self.LAPDset) or (key in excludelist)):
                 val = getattr(self, key)
-                if isinstance(val, np.ndarray): # array
+                if isinstance(val, numpy.ndarray): # array
                     print("%10s = %s, size %s" % (key, "array", val.shape))
                 else:
                     print("%10s = %s" % (key, val))
@@ -282,11 +281,11 @@ def blendparams(p1, p2, frac, flog=False):
         return v1*(1.-frac) + v2*frac
 
     def logmix(v1,v2,frac):
-        if not(isinstance(v1, np.ndarray)): # called with scalar arguments -- check signs
+        if not(isinstance(v1, numpy.ndarray)): # called with scalar arguments -- check signs
             if v1*v2<0:
                 raise Exception("Can't mix positive and negative values as 'log' fraction!")
         # Assume array arguments have the right sizes
-        return np.sign(v1)*abs(v1)**(1.-frac)*abs(v2)**frac
+        return numpy.sign(v1)*abs(v1)**(1.-frac)*abs(v2)**frac
 
     if flog:
         f = logmix
@@ -304,9 +303,9 @@ def blendparams(p1, p2, frac, flog=False):
 
     if (p1.np==p2.np) and (p1.tp==p2.tp) and (p1.pp==p2.pp):
         # Profiles don't change, but rmin/rmax might change
-        p.grid = profiles.EqGrid(Nr=p1.Nr, dp=p1.np, tp=p1.tp, pp=p1.pp, 
+        p.grid = profiles.EqGrid(Nr=p1.Nr, np=p1.np, tp=p1.tp, pp=p1.pp, 
                         param=p1.param,
-                        dparam=p1.nparam, tparam=p1.tparam, pparam=p1.pparam)  
+                        nparam=p1.nparam, tparam=p1.tparam, pparam=p1.pparam)  
         #TODO: implement param argument correctly
 
     else:
@@ -579,9 +578,7 @@ class SymbolicEq(object):
         dv = sympy.Symbol("dummyvec") 
         sf = sf + dv
         
-
-        f = sympy.lambdify((p.r, 
-                            ni, te, phi, nu_e, p.mu_ii, dv), sf, pvalues)
+        f = sympy.lambdify((p.r, ni, te, phi, nu_e, p.mu_ii, dv), sf)
         return f
 
 
@@ -670,10 +667,10 @@ class EigSolve(object):
         phi  = self.pvalues.phi
         nu_e = self.pvalues.nuei_arr
         mu_ii= self.pvalues.mu_ii
-        dv = np.zeros(self.Nr)  # the dummyvec argument for compiled functions
+        dv = numpy.zeros(self.Nr)  # the dummyvec argument for compiled functions
 
-        self.MLHS = np.zeros((self.NTOT,self.NTOT), complex)
-        self.MRHS = np.zeros((self.NTOT,self.NTOT), complex)
+        self.MLHS = numpy.zeros((self.NTOT,self.NTOT), complex)
+        self.MRHS = numpy.zeros((self.NTOT,self.NTOT), complex)
         
 
         print("Constructing the finite differences matrix...")
@@ -724,7 +721,7 @@ class EigSolve(object):
 
                 
         print("Solving the linear system...")
-        self.MTOT = np.dot(np.linalg.inv(self.MRHS), self.MLHS)
+        self.MTOT = numpy.dot(numpy.linalg.inv(self.MRHS), self.MLHS)
         print("Done")
 
 #        from misctools import ppmatrix
@@ -749,10 +746,10 @@ class EigSolve(object):
         # Set of functions for sorting the eigenvalues -- more flexible than lambda sorting
         def fc_gamma_asc(x,y):
             # sort by gamma, ascending
-            return int(np.sign(x[0].imag-y[0].imag))
+            return int(numpy.sign(x[0].imag-y[0].imag))
         def fc_abs_des(x,y):
             # sort by abs of the eigenvalue, descending
-            return int(np.sign(abs(y[0])-abs(x[0])))
+            return int(numpy.sign(abs(y[0])-abs(x[0])))
         def fc_absomega_asc(x,y):
             # sort by abs(omega), ascending, only growing modes
             # exclude omega=1 (values due to BC at matrix corners)
@@ -766,7 +763,7 @@ class EigSolve(object):
             elif abs((y[0].real - 1))<1.e-10:
                 return 1
             else:
-                return int(np.sign(abs(x[0].real)-abs(y[0].real)))
+                return int(numpy.sign(abs(x[0].real)-abs(y[0].real)))
 
         try:
             fsort = {"gamma_asc"    : fc_gamma_asc,
@@ -791,7 +788,7 @@ class EigSolve(object):
         self.eigPhi  = self.alleigvec[list(range(2,self.Nr*self.NVAR+2,self.NVAR)),:]
 
         self.crossphase = self.ni_phi_phase()
-        self.avgphase = np.sqrt((self.crossphase[1:-1,-1]**2).mean())
+        self.avgphase = numpy.sqrt((self.crossphase[1:-1,-1]**2).mean())
 
         return self.alleigval[-1]
 
@@ -800,11 +797,11 @@ class EigSolve(object):
         # Calculate cross phase between ni and phi
 
         def atan2vec(yv,xv):
-            return np.array([np.arctan2(y,x) for (x,y) in zip(xv,yv)])
+            return numpy.array([numpy.arctan2(y,x) for (x,y) in zip(xv,yv)])
 
         val = self.eigN/self.eigPhi
 
-        phase = np.zeros(val.shape)
+        phase = numpy.zeros(val.shape)
         for eig in range(self.Nr*self.NVAR):
             phase[:,eig] = atan2vec(val[:,eig].imag, val[:,eig].real)
         
@@ -880,7 +877,7 @@ def plot_omega(esolver, ommin=None, ommax=None, interactive=False, pos=-1):
         # type=polar: plot amplitude and phase
 
         def atan2vec(yv,xv):
-            return np.array([np.arctan2(y,x) for (x,y) in zip(xv,yv)])
+            return numpy.array([numpy.arctan2(y,x) for (x,y) in zip(xv,yv)])
 
         if type == 'cart':
             vp1 = esolver.eigPhi[:,pos].real
@@ -1003,9 +1000,9 @@ def trace_root(equation, p1, p2, nfrac=100, accumulate=1.,
 
             fig = plt.figure(2, figsize=(7,7))
             fig.clf()
-            p_param = np.array([getattr(p,plotparam) for p in scanres])
-            p_omega = np.array([p.omega0.real for p in scanres])
-            p_gamma = np.array([p.omega0.imag for p in scanres])
+            p_param = numpy.array([getattr(p,plotparam) for p in scanres])
+            p_omega = numpy.array([p.omega0.real for p in scanres])
+            p_gamma = numpy.array([p.omega0.imag for p in scanres])
             a=plt.subplot(1,2,1)
             a.plot(p_param, p_omega, 'o-', label=r'\omega')
             plt.xlabel(plotparam)
@@ -1026,10 +1023,10 @@ def trace_root(equation, p1, p2, nfrac=100, accumulate=1.,
 
     if plotparam:
         # Save the scan data in ascii file
-        p_param = np.array([getattr(p,plotparam) for p in scanres])
-        p_omega = np.array([p.omega0.real for p in scanres])
-        p_gamma = np.array([p.omega0.imag for p in scanres])
-        np.savetxt('scan_%s.txt' % plotparam, np.transpose(np.array([p_param, p_omega, p_gamma])))
+        p_param = numpy.array([getattr(p,plotparam) for p in scanres])
+        p_omega = numpy.array([p.omega0.real for p in scanres])
+        p_gamma = numpy.array([p.omega0.imag for p in scanres])
+        numpy.savetxt('scan_%s.txt' % plotparam, numpy.transpose(numpy.array([p_param, p_omega, p_gamma])))
 
         # Find the fastest growing mode
         a=p_gamma.argmax()
@@ -1051,7 +1048,7 @@ def save_scan(scanres, fname='trace_scan.dat'):
     data = {}  # dictionary of vector values, data only (no functions) -- pickle-able object
 
     for key in keys:
-        val = np.array([getattr(p,key) for p in scanres])  # extract the data from scanres
+        val = numpy.array([getattr(p,key) for p in scanres])  # extract the data from scanres
         data[key] = val
 
     pickle.dump(data, f)
@@ -1087,11 +1084,11 @@ def combine_scans(*d, **darg):
     dnew = d[0]
     for key in list(d[0].keys()):
         for darg in d[1:]:
-            dnew[key] = np.append(dnew[key], darg[key])
+            dnew[key] = numpy.append(dnew[key], darg[key])
 
     # Sort if asked
     if sortparam:
-        idx = np.argsort(dnew[sortparam])
+        idx = numpy.argsort(dnew[sortparam])
         for key in list(dnew.keys()):
             dnew[key] = dnew[key][idx]
 
