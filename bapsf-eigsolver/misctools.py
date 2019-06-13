@@ -3,6 +3,7 @@
 Collection of useful tools and definitions
 """
 
+import matplotlib.pyplot as plt
 
 # -----------------------------------------------------------
 class attrdict(dict):
@@ -52,111 +53,107 @@ def plot4dir(v1, v2=None, p = (0,0,0,0), msg="", axislabels="xyzt"):
     1D plots of 4D arrays v1 (and v2 if specified) around the point (ix,iy,iz,it)
     """
 
-    from matplotlib.pyplot import ioff,ion,figure,subplot,plot,xlabel,suptitle,show   # functions for plots
-
     ix,iy,iz,it = p
 
-    ioff()  # turn off matplotlib interactive regime for faster plotting
+    plt.ioff()  # turn off matplotlib interactive regime for faster plotting
 
-    figure()
-    subplot(2,2,1)
-    plot(v1[:,iy,iz,it],'g-')
-    xlabel(axislabels[0])
-    if v2 != None: plot(v2[:,iy,iz,it],'r--') 
-    plot([ix],[v1[p]],'o')
+    plt.figure()
+    plt.subplot(2,2,1)
+    plt.plot(v1[:,iy,iz,it],'g-')
+    plt.xlabel(axislabels[0])
+    if v2 != None: plt.plot(v2[:,iy,iz,it],'r--') 
+    plt.plot([ix],[v1[p]],'o')
 
-    subplot(2,2,2)
-    plot(v1[ix,:,iz,it],'g-')
-    xlabel(axislabels[1])
-    if v2 != None: plot(v2[ix,:,iz,it],'r--') 
-    plot([iy],[v1[p]],'o')
+    plt.subplot(2,2,2)
+    plt.plot(v1[ix,:,iz,it],'g-')
+    plt.xlabel(axislabels[1])
+    if v2 != None: plt.plot(v2[ix,:,iz,it],'r--') 
+    plt.plot([iy],[v1[p]],'o')
 
-    subplot(2,2,3)
-    plot(v1[ix,iy,:,it],'g-')
-    xlabel(axislabels[2])
-    if v2 != None: plot(v2[ix,iy,:,it],'r--') 
-    plot([iz],[v1[p]],'o')
+    plt.subplot(2,2,3)
+    plt.plot(v1[ix,iy,:,it],'g-')
+    plt.xlabel(axislabels[2])
+    if v2 != None: plt.plot(v2[ix,iy,:,it],'r--') 
+    plt.plot([iz],[v1[p]],'o')
 
-    subplot(2,2,4)
-    plot(v1[ix,iy,iz,:],'g-')
-    xlabel(axislabels[3])
-    if v2 != None: plot(v2[ix,iy,iz,:],'r--') 
-    plot([it],[v1[p]],'o')
+    plt.subplot(2,2,4)
+    plt.plot(v1[ix,iy,iz,:],'g-')
+    plt.xlabel(axislabels[3])
+    if v2 != None: plt.plot(v2[ix,iy,iz,:],'r--') 
+    plt.plot([it],[v1[p]],'o')
 
     if msg: msg = ",  " + msg
-    suptitle("Central point (i%s,i%s,i%s,i%s)=%s%s" % (axislabels[0],axislabels[1],
+    plt.suptitle("Central point (i%s,i%s,i%s,i%s)=%s%s" % (axislabels[0],axislabels[1],
                                                        axislabels[2],axislabels[3],
                                                        str(p), msg))
     
-    ion() # turn back on the interactive regime
-    show() # show the plot
+    plt.ion() # turn back on the interactive regime
+    plt.show() # show the plot
 
 # ----------------------------------------------------
 def plot3dir(v1, v2=None, p = (0,0,0), msg = "", axislabels="xyt"):
     """
     1D plots of 3D arrays v1 (and v2 if specified)
     """
-    from matplotlib.pyplot import ioff,ion,figure,subplot,plot,xlabel,suptitle,show   # functions for plots
 
     ix,iy,iz = p
 
-    ioff()  # turn off matplotlib interactive regime for faster plotting
+    plt.ioff()  # turn off matplotlib interactive regime for faster plotting
 
-    figure()
-    subplot(2,2,1)
-    plot(v1[:,iy,iz],'g-')
-    xlabel(axislabels[0])
-    if v2 != None: plot(v2[:,iy,iz],'r--') 
-    plot([ix],[v1[p]],'o')
+    plt.figure()
+    plt.subplot(2,2,1)
+    plt.plot(v1[:,iy,iz],'g-')
+    plt.xlabel(axislabels[0])
+    if v2 != None: plt.plot(v2[:,iy,iz],'r--') 
+    plt.plot([ix],[v1[p]],'o')
 
-    subplot(2,2,2)
-    plot(v1[ix,:,iz],'g-')
-    xlabel(axislabels[1])
-    if v2 != None: plot(v2[ix,:,iz],'r--') 
-    plot([iy],[v1[p]],'o')
+    plt.subplot(2,2,2)
+    plt.plot(v1[ix,:,iz],'g-')
+    plt.xlabel(axislabels[1])
+    if v2 != None: plt.plot(v2[ix,:,iz],'r--') 
+    plt.plot([iy],[v1[p]],'o')
 
-    subplot(2,2,3)
-    plot(v1[ix,iy,:],'g-')
-    xlabel(axislabels[2])
-    if v2 != None: plot(v2[ix,iy,:],'r--') 
-    plot([iz],[v1[p]],'o')
+    plt.subplot(2,2,3)
+    plt.plot(v1[ix,iy,:],'g-')
+    plt.xlabel(axislabels[2])
+    if v2 != None: plt.plot(v2[ix,iy,:],'r--') 
+    plt.plot([iz],[v1[p]],'o')
 
     if msg: msg = ",  " + msg
-    suptitle("Central point (i%s,i%s,i%s)=%s%s" % (axislabels[0],axislabels[1],axislabels[2],
+    plt.suptitle("Central point (i%s,i%s,i%s)=%s%s" % (axislabels[0],axislabels[1],axislabels[2],
                                                    str(p), msg))
     
-    ion() # turn back on the interactive regime
-    show() # show the plot
+    plt.ion() # turn back on the interactive regime
+    plt.show() # show the plot
 
 # ----------------------------------------------------
 def plot2dir(v1, v2=None, p = (0,0), msg = "", axislabels="xt"):
     """
     1D plots of 2D arrays v1 (and v2 if specified)
     """
-    from matplotlib.pyplot import ioff,ion,figure,subplot,plot,xlabel,suptitle,show   # functions for plots
-    ioff()  # turn off matplotlib interactive regime for faster plotting
+    plt.ioff()  # turn off matplotlib interactive regime for faster plotting
 
     ix,iy = p
 
-    figure()
-    subplot(2,1,1)
-    plot(v1[:,iy],'g-')
-    xlabel(axislabels[0])
-    if v2 != None: plot(v2[:,iy],'r--') 
-    plot([ix],[v1[p]],'o')
+    plt.figure()
+    plt.subplot(2,1,1)
+    plt.plot(v1[:,iy],'g-')
+    plt.xlabel(axislabels[0])
+    if v2 != None: plt.plot(v2[:,iy],'r--') 
+    plt.plot([ix],[v1[p]],'o')
 
-    subplot(2,1,2)
-    plot(v1[ix,:],'g-')
-    xlabel(axislabels[1])
-    if v2 != None: plot(v2[ix,:],'r--') 
-    plot([iy],[v1[p]],'o')
+    plt.subplot(2,1,2)
+    plt.plot(v1[ix,:],'g-')
+    plt.xlabel(axislabels[1])
+    if v2 != None: plt.plot(v2[ix,:],'r--') 
+    plt.plot([iy],[v1[p]],'o')
 
     if msg: msg = ",  " + msg
-    suptitle("Central point (i%s,i%s)=%s%s" % (axislabels[0],axislabels[1],
+    plt.suptitle("Central point (i%s,i%s)=%s%s" % (axislabels[0],axislabels[1],
                                                str(p), msg))
 
-    ion() # turn back on the interactive regime
-    show() # show the plot
+    plt.ion() # turn back on the interactive regime
+    plt.show() # show the plot
 
 
 # ----------------------------------------------------
@@ -164,26 +161,25 @@ def plot1dir(v1, v2=None, p = (0), msg = "", axislabels="x"):
     """
     1D plots of 1D arrays v1 (and v2 if specified)
     """
-    from matplotlib.pyplot import ioff,ion,figure,subplot,plot,xlabel,suptitle,show   # functions for plots
 
-    ioff()  # turn off matplotlib interactive regime for faster plotting
+    plt.ioff()  # turn off matplotlib interactive regime for faster plotting
 
     ix = p
 
-    figure()
-    subplot(2,1,1)
-    plot(v1[:],'g-')
-    xlabel(axislabels[0])
-    if v2 != None: plot(v2[:],'r--') 
-    plot([ix],[v1[p]],'o')
+    plt.figure()
+    plt.subplot(2,1,1)
+    plt.plot(v1[:],'g-')
+    plt.xlabel(axislabels[0])
+    if v2 != None: plt.plot(v2[:],'r--') 
+    plt.plot([ix],[v1[p]],'o')
 
 
     if msg: msg = ",  " + msg
-    suptitle("Central point (i%s)=%s%s" % (axislabels[0],
+    plt.suptitle("Central point (i%s)=%s%s" % (axislabels[0],
                                                str(p), msg))
 
-    ion() # turn back on the interactive regime
-    show() # show the plot
+    plt.ion() # turn back on the interactive regime
+    plt.show() # show the plot
     
 # ----------------------------------------------------
 def ppmatrix(M, digits=3, idiv=None, imod=None, trace=False):

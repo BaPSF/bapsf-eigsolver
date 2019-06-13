@@ -2,7 +2,7 @@
 #
 # Class that defines profiles
 
-from scipy import *
+import numpy as np
 from scipy.interpolate.fitpack2 import UnivariateSpline
 
 
@@ -42,11 +42,11 @@ class ProfileFit(UnivariateSpline):
         
     def derivatives(self, x):
         """Redefine derivatives method to use vector x, not only scalar"""
-        return array([UnivariateSpline.derivatives(self, ix) for ix in x])
+        return np.array([UnivariateSpline.derivatives(self, ix) for ix in x])
             
     def cumintegral(self, x):
         """Calculate integral of the spline between 0 and x"""
-        return array([UnivariateSpline.integral(self, 0., ix) for ix in x])
+        return np.array([UnivariateSpline.integral(self, 0., ix) for ix in x])
        
 
 
@@ -54,28 +54,28 @@ class EqGrid(object):
     """Initialize equilibrium profiles (density, temperature, phi). 
     All profiles are defined on 0<=x<=1 interval"""
 
-    def __init__(self, Nr=100, np=0, tp=0, pp=0, param=None, 
-                       nparam=None, tparam=None, pparam=None):
+    def __init__(self, Nr=100, dp=0, tp=0, pp=0, param=None, # dp used to be np (density?). Changed to avoid collision with numpy as np
+                       dparam=None, tparam=None, pparam=None): # dparam used to be nparam
         # param is still here for legacy reasons, to keep old configs working)
 
         object.__init__(self)
 
         self.Nr = Nr
-        self.x = linspace(0.,1.,Nr)
+        self.x = np.linspace(0.,1.,Nr)
         self.h = 1./(Nr-1)  # Nr -- number radial *intervals*, not points
 
         # Initialize the profiles
         # Some of the profile options require additional information about radial interval ra,rb -- passed as param['ra'] etc
         if param:
-            nparam = tparam = pparam = param
-        self.ni  = self.get_nprofile(self.x, np, param=nparam)
+            dparam = tparam = pparam = param
+        self.ni  = self.get_nprofile(self.x, dp, param=dparam)
         self.te  = self.get_tprofile(self.x, tp, param=tparam)
         self.phi = self.get_pprofile(self.x, pp, param=pparam)
 
 
     def get_nprofile(self, x, p, param=None):
         """Normalized density profile (and radial derivative)"""
-        ni = zeros((3,len(x)),float)  # ni[0]-density, ni[1]-derivative dni/dx
+        ni = np.zeros((3,len(x)),float)  # ni[0]-density, ni[1]-derivative dni/dx
 
         if p == 0:
             ni[0,:]  = 1.
@@ -88,7 +88,7 @@ class EqGrid(object):
             ni[2,:]  = 0.
 
         elif p == "linear_test":
-            x = linspace(0.,1.,self.Nr+2) # To make it like BOUT++
+            x = np.linspace(0.,1.,self.Nr+2) # To make it like BOUT++
             ni[0,:]  = 1. - 0.6*x[1:-1]
             ni[1,:]  = -0.6
             ni[2,:]  = 0.
@@ -96,17 +96,17 @@ class EqGrid(object):
 
         elif p == 2:
             Ln = param.w
-            ni[0,:]  =  exp(-x/Ln)
-            ni[1,:]  = -exp(-x/Ln)/Ln
-            ni[2,:]  =  exp(-x/Ln)/(Ln**2)
+            ni[0,:]  =  np.exp(-x/Ln)
+            ni[1,:]  = -np.exp(-x/Ln)/Ln
+            ni[2,:]  =  np.exp(-x/Ln)/(Ln**2)
 
         elif p == 3:
             # Similar to LAPD profile in biasing expriment -- phase before biasing
             # Carter and Maggs, PoP, biasing paper, Fig. 3a
-            pc=array([-13.6595, 311.560, -2205.60, 7159.09, -11090.9, 6666.66])/2.5 # coefficients from POLY_FIT
+            pc=np.array([-13.6595, 311.560, -2205.60, 7159.09, -11090.9, 6666.66])/2.5 # coefficients from POLY_FIT
             rmin_m = 0.15
             rmax_m = 0.45
-            x = linspace(0.,1.,self.Nr+2) # To make it like BOUT++
+            x = np.linspace(0.,1.,self.Nr+2) # To make it like BOUT++
             rfull = x*(rmax_m-rmin_m) + rmin_m   # r in meters - this is how the fit was done
             rm = rfull[1:-1]
 
@@ -124,7 +124,7 @@ class EqGrid(object):
         elif p == '3_with_buffer':
             # Similar to LAPD profile in biasing expriment -- phase before biasing
             # Carter and Maggs, PoP, biasing paper, Fig. 3a
-            pc=array([-13.6595, 311.560, -2205.60, 7159.09, -11090.9, 6666.66])/2.5 # coefficients from POLY_FIT
+            pc=np.array([-13.6595, 311.560, -2205.60, 7159.09, -11090.9, 6666.66])/2.5 # coefficients from POLY_FIT
             rmin_m = 0.15
             rmax_m = 0.45
             rm = x*(rmax_m-rmin_m) + rmin_m   # r in meters - this is how the fit was done
@@ -156,13 +156,13 @@ class EqGrid(object):
             # ni = n0 + (f(x)-f(0))/(f(1)-f(0))*(n2-n0)
             # ni(0) = n0,   ni(1) = n2
             # f(x) = (1-tanh((x-x0)*w))
-            f0 = (1-tanh((0.-x0)*w))
-            f1 = (1-tanh((1.-x0)*w))
+            f0 = (1-np.tanh((0.-x0)*w))
+            f1 = (1-np.tanh((1.-x0)*w))
             alpha = 1./(f1-f0)*(n2-n0)
 
-            ni[0,:]  =((1-tanh((x-x0)*w)) - f0)*alpha + n0
-            ni[1,:]  = (-(1. - (tanh((x-x0)*w))**2)*w) * alpha
-            ni[2,:]  = (2.*tanh((x-x0)*w)*( 1. - (tanh((x-x0)*w))**2 )*w*w) * alpha
+            ni[0,:]  =((1-np.tanh((x-x0)*w)) - f0)*alpha + n0
+            ni[1,:]  = (-(1. - (np.tanh((x-x0)*w))**2)*w) * alpha
+            ni[2,:]  = (2.*np.tanh((x-x0)*w)*( 1. - (np.tanh((x-x0)*w))**2 )*w*w) * alpha
 
 
         elif p == 'tanh':
@@ -179,51 +179,51 @@ class EqGrid(object):
 
             rarg=(rav-rm)/wid
 
-            ni[0,:]  = f_rmax + (f_rmin-f_rmax)*0.5*(1.0+tanh(rarg))
-            ni[1,:]  = ((f_rmax-f_rmin)/(2*wid))/(cosh(rarg))**2
-            ni[2,:]  = ((f_rmax-f_rmin)/wid**2)*(tanh(rarg))/(cosh(rarg))**2
+            ni[0,:]  = f_rmax + (f_rmin-f_rmax)*0.5*(1.0+np.tanh(rarg))
+            ni[1,:]  = ((f_rmax-f_rmin)/(2*wid))/(np.cosh(rarg))**2
+            ni[2,:]  = ((f_rmax-f_rmin)/wid**2)*(np.tanh(rarg))/(np.cosh(rarg))**2
 
             
         elif p == 'LAPD_nonrotating':
             # Non-rotating plasma, data from paper J. Maggs et al, PoP 14 (2007), Fig.9
             # Use with params: ra=0.15, rb=0.45m,  ni0=3.8e18, te0=9 eV
-            r_m  = array([0.,   10., 20.,   30.,  40., 45.,  50.])*0.01 # in m
-            Ne   = array([1.9, 1.8, 1.4,  0.75,  0.25, 0.15, 0.1])*2.e12  # in cm^-3
+            r_m  = np.array([0.,   10., 20.,   30.,  40., 45.,  50.])*0.01 # in m
+            Ne   = np.array([1.9, 1.8, 1.4,  0.75,  0.25, 0.15, 0.1])*2.e12  # in cm^-3
             s = ProfileFit(r_m, Ne)
-            ni[0:2,:] = transpose(s.derivatives(x)[:,0:2])
+            ni[0:2,:] = np.transpose(s.derivatives(x)[:,0:2])
 
         elif p == 'LAPD_rotating':
             # Rotating plasma, data from paper J. Maggs et al, PoP 14 (2007), Fig.9
             # Use with params: ra=0.15, rb=0.45m,  ni0=3.6e18, te0=7.8 eV
             ra, rb = param.ra, param.rb
-            r_m  = array([0.,  10., 15.,  20., 25.,  30., 35.,  45., 50.])*0.01 # in m
-            Ne   = array([1.8, 1.8, 2.0, 2.0, 0.8,  0.2, 0.13, 0.1, 0.09])*2.e12 # in cm^-3
+            r_m  = np.array([0.,  10., 15.,  20., 25.,  30., 35.,  45., 50.])*0.01 # in m
+            Ne   = np.array([1.8, 1.8, 2.0, 2.0, 0.8,  0.2, 0.13, 0.1, 0.09])*2.e12 # in cm^-3
             s = ProfileFit(r_m, Ne, ra, rb) # x=0..1 interval is mapped to r=ra..rb
-            ni[0:3,:] = transpose(s.derivatives(x)[:,0:3])
+            ni[0:3,:] = np.transpose(s.derivatives(x)[:,0:3])
 
         elif p == 'gauss':
             # Gaussian with max at r=ra, f(ra=1), f(rb=vb)
             w  = param.w
             vb = param.vb
             
-            v  = exp(-(1./w)**2)  # value at r=rb
+            v  = np.exp(-(1./w)**2)  # value at r=rb
             alpha = (1.-vb)/(1.-v)   # f = (g(x)-v) * alpha + vb
 
-            ni[0,:]  = (exp(-(x/w)**2)-v) *alpha + vb
-            ni[1,:]  = -exp(-(x/w)**2)*2*x/(w*w)*alpha
-            ni[2,:]  = exp(-(x/w)**2)*( (2*x/(w*w))**2 - 2/(w*w))*alpha
+            ni[0,:]  = (np.exp(-(x/w)**2)-v) *alpha + vb
+            ni[1,:]  = -np.exp(-(x/w)**2)*2*x/(w*w)*alpha
+            ni[2,:]  = np.exp(-(x/w)**2)*( (2*x/(w*w))**2 - 2/(w*w))*alpha
 
         elif p == 'invgauss':
             # Inversed gaussian with max at r=rb, f(ra=va), f(rb=1)
             w  = param.w
             va = param.va
 
-            v  = exp(-(1./w)**2)
+            v  = np.exp(-(1./w)**2)
             alpha = -(1.-va)/(1.-v)   # f = (g(x)-v) * alpha + 1
 
-            ni[0,:]  = (exp(-(x/w)**2)-v) *alpha + 1.
-            ni[1,:]  = -exp(-(x/w)**2)*2*x/(w*w)*alpha
-            ni[2,:]  = exp(-(x/w)**2)*( (2*x/(w*w))**2 - 2/(w*w))*alpha
+            ni[0,:]  = (np.exp(-(x/w)**2)-v) *alpha + 1.
+            ni[1,:]  = -np.exp(-(x/w)**2)*2*x/(w*w)*alpha
+            ni[2,:]  = np.exp(-(x/w)**2)*( (2*x/(w*w))**2 - 2/(w*w))*alpha
 
 
         elif p == 'DaveA_set1':
@@ -231,24 +231,24 @@ class EqGrid(object):
             # Data: ethanol, /data/ppopovich/DAVE_DWsolver/PROFILES_20100330/profiles.sav
             # Use with params: ra=0.001, rb=0.042m, n0=1.9843e18
             ra, rb = param.ra, param.rb
-            r_m = array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
-            Ne = array([1.3292,  1.3298,  1.3350,  1.3402,  1.3439,  1.3452,  1.3412,  1.3271,  1.3058,  1.2966,  1.3208,  1.3980,  1.5454,  1.7402,  1.9067,  1.9860,  1.9994,  1.9870,  1.9727,  1.9681,  1.9843])*1.e12 # in cm^-3
+            r_m = np.array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
+            Ne = np.array([1.3292,  1.3298,  1.3350,  1.3402,  1.3439,  1.3452,  1.3412,  1.3271,  1.3058,  1.2966,  1.3208,  1.3980,  1.5454,  1.7402,  1.9067,  1.9860,  1.9994,  1.9870,  1.9727,  1.9681,  1.9843])*1.e12 # in cm^-3
 
             nnorm = 1.9843*1.e12  # normalization for ni
             s = ProfileFit(r_m, Ne, ra, rb, norm=nnorm) # x=0..1 interval is mapped to r=ra..rb
-            ni[0:3,:] = transpose(s.derivatives(x)[:,0:3])
+            ni[0:3,:] = np.transpose(s.derivatives(x)[:,0:3])
 
         elif p == 'DaveA_set2_avg':
             # Profile from swept probe data, averaged. Troy, 2010/03/30.
             # Data: ethanol, /data/ppopovich/DAVE_DWsolver/PROFILES_20100330/profiles.sav
             # Use with params: ra=0.001, rb=0.042m, n0=1.9906e18
             ra, rb = param.ra, param.rb
-            r_m = array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
-            Ne = array([1.4474,  1.4443,  1.4414,  1.4499,  1.4671,  1.4773,  1.4711,  1.4588,  1.4537,  1.4637,  1.4935,  1.5437,  1.6088,  1.6823,  1.7568,  1.8249,  1.8836,  1.9345,  1.9763,  1.9988,  1.9906])*1.e12 # in cm^-3
+            r_m = np.array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
+            Ne = np.array([1.4474,  1.4443,  1.4414,  1.4499,  1.4671,  1.4773,  1.4711,  1.4588,  1.4537,  1.4637,  1.4935,  1.5437,  1.6088,  1.6823,  1.7568,  1.8249,  1.8836,  1.9345,  1.9763,  1.9988,  1.9906])*1.e12 # in cm^-3
 
             nnorm = 1.9906*1.e12  # normalization for ni
             s = ProfileFit(r_m, Ne, ra, rb, norm=nnorm) # x=0..1 interval is mapped to r=ra..rb
-            ni[0:3,:] = transpose(s.derivatives(x)[:,0:3])
+            ni[0:3,:] = np.transpose(s.derivatives(x)[:,0:3])
 
 
         elif p == 'Shu_annulus':
@@ -268,16 +268,16 @@ class EqGrid(object):
 
             from . import BOUTppmath
 
-            ni[0,:] = ((A1-A2)/(1+exp((rcm-x0)/dx))+A2)*2.6
-            ni[1,:] = -2.6*(A1-A2)*exp((rcm-x0)/dx)/dx/(1+exp((rcm-x0)/dx))**2
-            ni[2,:] = 5.2*(A1-A2)*exp(2.*(rcm-x0)/dx)/dx**2/(1+exp((rcm-x0)/dx))**3 - 2.6*(A1-A2)*exp((rcm-x0)/dx)/dx**2/(1+exp((rcm-x0)/dx))**2
+            ni[0,:] = ((A1-A2)/(1+np.exp((rcm-x0)/dx))+A2)*2.6
+            ni[1,:] = -2.6*(A1-A2)*np.exp((rcm-x0)/dx)/dx/(1+np.exp((rcm-x0)/dx))**2
+            ni[2,:] = 5.2*(A1-A2)*np.exp(2.*(rcm-x0)/dx)/dx**2/(1+np.exp((rcm-x0)/dx))**3 - 2.6*(A1-A2)*np.exp((rcm-x0)/dx)/dx**2/(1+np.exp((rcm-x0)/dx))**2
 
         return ni
 
 
     def get_tprofile(self, x, p, param=None):
         """Normalized temperature profile"""
-        te = zeros((2,len(x)),float)
+        te = np.zeros((2,len(x)),float)
         te[1][:]  = 0.  # d te/dr, not used
 
         if p == 0:
@@ -289,7 +289,7 @@ class EqGrid(object):
 
         elif p == 'LAPD_BOUTpp':
             # Non-rotating plasma, data from paper J. Maggs et al, PoP 14 (2007), Fig.4b
-            pc=array([0.01000000000000,  -0.00217278378278,  -0.03380882156298,   0.51773982924486, -2.03366007734383,   3.17529533513940,  -2.19693112025107,   0.56522609391293])*1.e2 # coefficients from POLY_FIT
+            pc=np.array([0.01000000000000,  -0.00217278378278,  -0.03380882156298,   0.51773982924486, -2.03366007734383,   3.17529533513940,  -2.19693112025107,   0.56522609391293])*1.e2 # coefficients from POLY_FIT
             rmin_m = 0.15
             rmax_m = 0.45
             rm = x
@@ -301,8 +301,8 @@ class EqGrid(object):
 
         elif p == 'LAPD_nonrotating':
             # Non-rotating plasma, data from paper J. Maggs et al, PoP 14 (2007), Fig.4b
-            r_m  = array([0.,  10., 20., 25.,  30., 35.,  43.,  50.])*0.01 # in m
-            Te   = array([9.,  9.,  8.2, 7.,  4.5,  2.5,  1.75, 1.7]) # in eV
+            r_m  = np.array([0.,  10., 20., 25.,  30., 35.,  43.,  50.])*0.01 # in m
+            Te   = np.array([9.,  9.,  8.2, 7.,  4.5,  2.5,  1.75, 1.7]) # in eV
             s = ProfileFit(r_m, Te)
             te[0,:] = s(x)
             from . import BOUTppmath
@@ -313,8 +313,8 @@ class EqGrid(object):
             # Temperature normalization: te0=7.8 eV
             ra, rb = param.ra, param.rb
 
-            r_m  = array([0.,  5.,  10.,  20.,  25.,  28.,  32.,  36.,  43.,  50.])*0.01 # in m
-            Te   = array([7.8, 7.8, 7.8,  8.1,  7.,   5.3,  5.1,  5.2,  5.3,  5.4]) # in eV
+            r_m  = np.array([0.,  5.,  10.,  20.,  25.,  28.,  32.,  36.,  43.,  50.])*0.01 # in m
+            Te   = np.array([7.8, 7.8, 7.8,  8.1,  7.,   5.3,  5.1,  5.2,  5.3,  5.4]) # in eV
             s = ProfileFit(r_m, Te, ra, rb, norm=7.8) # x=0..1 interval is mapped to r=ra..rb
             te[0,:] = s(x)
             from . import BOUTppmath
@@ -325,30 +325,30 @@ class EqGrid(object):
             w  = param.w
             vb = param.vb
             
-            v  = exp(-(1./w)**2)  # value at r=rb
+            v  = np.exp(-(1./w)**2)  # value at r=rb
             alpha = (1.-vb)/(1.-v)   # f = (g(x)-v) * alpha + vb
 
-            te[0,:]  = (exp(-(x/w)**2)-v) *alpha + vb
-            te[1,:]  = -exp(-(x/w)**2)*2*x/(w*w)*alpha
+            te[0,:]  = (np.exp(-(x/w)**2)-v) *alpha + vb
+            te[1,:]  = -np.exp(-(x/w)**2)*2*x/(w*w)*alpha
 
         elif p == 'invgauss':
             # Inversed gaussian with max at r=rb, f(ra=va), f(rb=1)
             w  = param.w
             va = param.va
 
-            v  = exp(-(1./w)**2)
+            v  = np.exp(-(1./w)**2)
             alpha = -(1.-va)/(1.-v)   # f = (g(x)-v) * alpha + 1
 
-            te[0,:]  = (exp(-(x/w)**2)-v) *alpha + 1.
-            te[1,:]  = -exp(-(x/w)**2)*2*x/(w*w)*alpha
+            te[0,:]  = (np.exp(-(x/w)**2)-v) *alpha + 1.
+            te[1,:]  = -np.exp(-(x/w)**2)*2*x/(w*w)*alpha
 
         elif p == 'DaveA_set1':
             # Profile from swept probe data. Troy, 2010/03/30.
             # Data: ethanol, /data/ppopovich/DAVE_DWsolver/PROFILES_20100330/profiles.sav
             # Use with params: ra=0.001, rb=0.042m, te0=7.1 eV
             ra, rb = param.ra, param.rb
-            r_m = array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
-            Te = array([3.7190,  3.7180,  3.7163,  3.7645,  3.8312,  3.8718,  3.9551,  4.2364,  4.7784,  5.4325,  6.0325,  6.4967,  6.7823,  6.9044,  6.9536,  7.0053,  7.0564,  7.0855,  7.0920,  7.0916,  7.1003]) # in eV
+            r_m = np.array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
+            Te = np.array([3.7190,  3.7180,  3.7163,  3.7645,  3.8312,  3.8718,  3.9551,  4.2364,  4.7784,  5.4325,  6.0325,  6.4967,  6.7823,  6.9044,  6.9536,  7.0053,  7.0564,  7.0855,  7.0920,  7.0916,  7.1003]) # in eV
 
             tnorm = 7.1 # normalization for Te
             s = ProfileFit(r_m, Te, ra, rb, norm=tnorm) # x=0..1 interval is mapped to r=ra..rb
@@ -361,8 +361,8 @@ class EqGrid(object):
             # Data: ethanol, /data/ppopovich/DAVE_DWsolver/PROFILES_20100330/profiles.sav
             # Use with params: ra=0.001, rb=0.042m, te0=6.7543 eV
             ra, rb = param.ra, param.rb
-            r_m = array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
-            Te = array([3.6832,  3.7112,  3.7741,  3.8230,  3.8791,  4.0302,  4.3186,  4.6521,  4.9270,  5.1556,  5.4143,  5.7319,  6.0590,  6.3443,  6.5614,  6.6930,  6.7478,  6.7593,  6.7563,  6.7513,  6.7543]) # in eV
+            r_m = np.array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
+            Te = np.array([3.6832,  3.7112,  3.7741,  3.8230,  3.8791,  4.0302,  4.3186,  4.6521,  4.9270,  5.1556,  5.4143,  5.7319,  6.0590,  6.3443,  6.5614,  6.6930,  6.7478,  6.7593,  6.7563,  6.7513,  6.7543]) # in eV
 
             tnorm = 6.7543 # normalization for Te
             s = ProfileFit(r_m, Te, ra, rb, norm=tnorm) # x=0..1 interval is mapped to r=ra..rb
@@ -375,7 +375,7 @@ class EqGrid(object):
 
     def get_pprofile(self, x, p, param=None):
         """Normalized phi0 profile (and radial derivatives up to 3rd order)"""
-        phi = zeros((4,len(x)),float)  # phi[0]-density, phi[1]-first derivative dphi/dx etc
+        phi = np.zeros((4,len(x)),float)  # phi[0]-density, phi[1]-first derivative dphi/dx etc
 
         if p == 0:
             # Const
@@ -410,8 +410,8 @@ class EqGrid(object):
             # Rotating plasma, data from paper J. Maggs et al, PoP 14 (2007), Fig.6a
             # Use with params: ra=0.15, rb=0.45m,  phi0v=85.45,  te0=7.8
 
-            r_m  = array([10., 15.,  20.,  25.,  30.,  35.,  40.,  45.,  50.])*0.01 # in m
-            M    = array([ 0., 0. ,  0. , 0.07, 0.25,  0.8,  1.3,  1.4,  1.4]) # Mach number
+            r_m  = np.array([10., 15.,  20.,  25.,  30.,  35.,  40.,  45.,  50.])*0.01 # in m
+            M    = np.array([ 0., 0. ,  0. , 0.07, 0.25,  0.8,  1.3,  1.4,  1.4]) # Mach number
 #            Cs   = 11300. # m/s;  as an approx. take Te=5.34 eV (value at 0.45m)
 #            vth  = M*Cs
             
@@ -421,7 +421,7 @@ class EqGrid(object):
             s = ProfileFit(r_m, M/dxdr, ra=ra, rb=rb, norm=1.) # x=0..1 interval is mapped to r=ra..rb
             phi0max  = 10.95470779302
             phi[0,:]   = s.cumintegral(x)[:]/phi0max
-            phi[1:4,:] = transpose(s.derivatives(x)[:,0:3])/phi0max
+            phi[1:4,:] = np.transpose(s.derivatives(x)[:,0:3])/phi0max
             # with this normalization, we have 
             # phi[0] = 1 at r=0.45m
             # phi0*phi[1]*dxdr = M = vtheta/Cs  (*dxrd is done in update_params)
@@ -431,50 +431,50 @@ class EqGrid(object):
             w  = param.w
             vb = param.vb
             
-            v  = exp(-(1./w)**2)  # value at r=rb
+            v  = np.exp(-(1./w)**2)  # value at r=rb
             alpha = (1.-vb)/(1.-v)   # f = (g(x)-v) * alpha + vb
 
-            phi[0,:]  = (exp(-(x/w)**2)-v) *alpha + vb
-            phi[1,:]  = -exp(-(x/w)**2)*2*x/(w*w)*alpha
-            phi[2,:]  = exp(-(x/w)**2)*( (2*x/(w*w))**2 - 2/(w*w))*alpha
-            phi[3,:]  = exp(-(x/w)**2)*( -8*x**3/w**6 + 12*x/w**4)*alpha
+            phi[0,:]  = (np.exp(-(x/w)**2)-v) *alpha + vb
+            phi[1,:]  = -np.exp(-(x/w)**2)*2*x/(w*w)*alpha
+            phi[2,:]  = np.exp(-(x/w)**2)*( (2*x/(w*w))**2 - 2/(w*w))*alpha
+            phi[3,:]  = np.exp(-(x/w)**2)*( -8*x**3/w**6 + 12*x/w**4)*alpha
 
         elif p == 'invgauss':
             # Inversed gaussian with max at r=rb, f(ra=va), f(rb=1)
             w  = param.w
             va = param.va
 
-            v  = exp(-(1./w)**2)
+            v  = np.exp(-(1./w)**2)
             alpha = -(1.-va)/(1.-v)   # f = (g(x)-v) * alpha + 1
 
-            phi[0,:]  = (exp(-(x/w)**2)-v) *alpha + 1.
-            phi[1,:]  = -exp(-(x/w)**2)*2*x/(w*w)*alpha
-            phi[2,:]  = exp(-(x/w)**2)*( (2*x/(w*w))**2 - 2/(w*w))*alpha
-            phi[3,:]  = exp(-(x/w)**2)*( -8*x**3/w**6 + 12*x/w**4)*alpha
+            phi[0,:]  = (np.exp(-(x/w)**2)-v) *alpha + 1.
+            phi[1,:]  = -np.exp(-(x/w)**2)*2*x/(w*w)*alpha
+            phi[2,:]  = np.exp(-(x/w)**2)*( (2*x/(w*w))**2 - 2/(w*w))*alpha
+            phi[3,:]  = np.exp(-(x/w)**2)*( -8*x**3/w**6 + 12*x/w**4)*alpha
 
         elif p == 'DaveA_set1':
             # Profile from swept probe data. Troy, 2010/03/30.
             # Data: ethanol, /data/ppopovich/DAVE_DWsolver/PROFILES_20100330/profiles.sav
             # Use with params: ra=0.001, rb=0.042m, phi0=2.8565 V
             ra, rb = param.ra, param.rb
-            r_m = array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
-            Phi = array([3.6935,  3.6921,  3.6759,  3.6428,  3.6031,  3.5692,  3.5439,  3.5228,  3.5014,  3.4751,  3.4372,  3.3664,  3.2357,  3.0617,  2.9171,  2.8574,  2.8524,  2.8531,  2.8454,  2.8420,  2.8565]) # in V
+            r_m = np.array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
+            Phi = np.array([3.6935,  3.6921,  3.6759,  3.6428,  3.6031,  3.5692,  3.5439,  3.5228,  3.5014,  3.4751,  3.4372,  3.3664,  3.2357,  3.0617,  2.9171,  2.8574,  2.8524,  2.8531,  2.8454,  2.8420,  2.8565]) # in V
 
             pnorm = 2.8565 # normalization for Phi0
             s = ProfileFit(r_m, Phi, ra, rb, norm=pnorm) # x=0..1 interval is mapped to r=ra..rb
-            phi[0:4,:] = transpose(s.derivatives(x)[:,0:4])
+            phi[0:4,:] = np.transpose(s.derivatives(x)[:,0:4])
 
         elif p == 'DaveA_set2_avg':
             # Profile from swept probe data, averaged. Troy, 2010/03/30.
             # Data: ethanol, /data/ppopovich/DAVE_DWsolver/PROFILES_20100330/profiles.sav
             # Use with params: ra=0.001, rb=0.042m, phi0=3.0127 V
             ra, rb = param.ra, param.rb
-            r_m = array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
-            Phi = array([3.6972,  3.6950,  3.6803,  3.6417,  3.5846,  3.5305,  3.4920,  3.4546,  3.4019,  3.3414,  3.2937,  3.2626,  3.2243,  3.1601,  3.0906,  3.0476,  3.0348,  3.0299,  3.0178,  3.0077,  3.0127]) # in V
+            r_m = np.array([0.0000,  0.2500,  0.5000,  0.7500,  1.0000,  1.2500,  1.5000,  1.7500,  2.0000,  2.2500,  2.5000,  2.7500,  3.0000,  3.2500,  3.5000,  3.7500,  4.0000,  4.2500,  4.5000,  4.7500,  5.0000]) *0.01 # in m
+            Phi = np.array([3.6972,  3.6950,  3.6803,  3.6417,  3.5846,  3.5305,  3.4920,  3.4546,  3.4019,  3.3414,  3.2937,  3.2626,  3.2243,  3.1601,  3.0906,  3.0476,  3.0348,  3.0299,  3.0178,  3.0077,  3.0127]) # in V
 
             pnorm = 3.0127 # normalization for Phi0
             s = ProfileFit(r_m, Phi, ra, rb, norm=pnorm) # x=0..1 interval is mapped to r=ra..rb
-            phi[0:4,:] = transpose(s.derivatives(x)[:,0:4])
+            phi[0:4,:] = np.transpose(s.derivatives(x)[:,0:4])
 
         return phi
  
