@@ -427,7 +427,7 @@ def ddx_4D(fval, du, order='DDX_C4'):
 #                                               / du.dr_n[2:4,:,newaxis,newaxis])
 
     if order == 'DDX_C2':
-        print 'doing DDX_C2'
+        print('doing DDX_C2')
         res4D[2:-2,:,:,:] = (
             DDX_C2(fval[2:-2,:,:,:], fval[1:-3,:,:,:], fval[3:-1,:,:,:], 
                                      fval[0:-4,:,:,:], fval[4:  ,:,:,:])
@@ -435,7 +435,7 @@ def ddx_4D(fval, du, order='DDX_C4'):
 
 
     if order == 'DDX_R1':
-        print 'doing DDX_R1'
+        print('doing DDX_R1')
         res4D[2:-2,:,:,:] = (
             DDX_R1(fval[2:-2,:,:,:], fval[1:-3,:,:,:], fval[3:-1,:,:,:], 
                                      fval[:-4,:,:,:], fval[4:  ,:,:,:])
@@ -476,7 +476,7 @@ def d2dx2_4D(fval, du, order='D2DX2_C4'):
                                                / (du.dr_n)**2)
 
     if order == 'D2L1DR1':
-        print 'doing D2L1DR1'
+        print('doing D2L1DR1')
         res4D[2:-2,:,:,:] = (
             D2L1DR1(fval[2:-2,:,:,:], fval[1:-3,:,:,:], fval[3:-1,:,:,:], 
                                      fval[0:-4,:,:,:], fval[4:  ,:,:,:])
@@ -702,7 +702,7 @@ def Grad(f, x, metric='cart'):
         g[1] = sympy.diff(f, x[1])/x[0]  # 1/r d/dtheta
         g[2] = sympy.diff(f, x[2])       # d/dz
     else:
-        print "Wrong agrument of Grad function!"
+        print("Wrong agrument of Grad function!")
         return 0
         
     return sympy.Matrix(3,1, g)
@@ -745,7 +745,7 @@ Input:  x -- list of coordinates [x,y,z]/[r,theta,z] """
                 av[2]*sympy.diff(bv[2], x[2]))
 
     else:
-        print "Wrong agrument of AGradB function!"
+        print("Wrong agrument of AGradB function!")
         return 0
         
     return sympy.Matrix(3,1, g)
@@ -764,7 +764,7 @@ def Div(v, x, metric='cart'):
              sympy.diff(v[1], x[1])/x[0] +        # 1/r d/dtheta vtheta
              sympy.diff(v[2], x[2]))              # d/dz vz
     else:
-        print "Wrong agrument of Div function!"
+        print("Wrong agrument of Div function!")
         return 0
         
     return g
@@ -844,7 +844,7 @@ def TriDiagDet(a,b,c):
     D[0] = a[0]   # a_1
     D[1] = a[0]*a[1] - b[0]*c[0]    # det(A_{1,2}) = a_1*a_2 - c_1*b_1
 
-    for n in xrange(2,N):
+    for n in range(2,N):
         D[n] = a[n]*D[n-1] - b[n-1]*c[n-1]*D[n-2]
 
     return D[N-1]

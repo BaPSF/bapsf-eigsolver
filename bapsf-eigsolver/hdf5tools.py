@@ -23,7 +23,7 @@ def WriteToH5(filename, variable_dict):
 
 	h5f=h5py.File(filename, 'w')
 	
-	var_names=variable_dict.keys()
+	var_names=list(variable_dict.keys())
 	for var_name in var_names:
 		dataset=h5f.create_dataset(var_name, data=variable_dict[var_name])
 		

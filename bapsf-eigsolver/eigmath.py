@@ -39,7 +39,7 @@ def Grad(f, x, metric='cart'):
         g[1] = sympy.diff(f, x[1])/x[0]  # 1/r d/dtheta
         g[2] = sympy.diff(f, x[2])       # d/dz
     else:
-        print "Wrong agrument of Grad function!"
+        print("Wrong agrument of Grad function!")
         return 0
         
     return sympy.Matrix(3,1, g)
@@ -82,7 +82,7 @@ Input:  x -- list of coordinates [x,y,z]/[r,theta,z] """
                 av[2]*sympy.diff(bv[2], x[2]))
 
     else:
-        print "Wrong agrument of AGradB function!"
+        print("Wrong agrument of AGradB function!")
         return 0
         
     return sympy.Matrix(3,1, g)
@@ -101,7 +101,7 @@ def Div(v, x, metric='cart'):
              sympy.diff(v[1], x[1])/x[0] +        # 1/r d/dtheta vtheta
              sympy.diff(v[2], x[2]))              # d/dz vz
     else:
-        print "Wrong agrument of Div function!"
+        print("Wrong agrument of Div function!")
         return 0
         
     return g

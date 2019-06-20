@@ -253,7 +253,7 @@ class EqGrid(object):
 
             rcm = rmin + (rmax-rmin)*x
 
-            import BOUTppmath
+            from . import BOUTppmath
 
             ni[0,:] = ((A1-A2)/(1+exp((rcm-x0)/dx))+A2)*2.6
             ni[1,:] = -2.6*(A1-A2)*exp((rcm-x0)/dx)/dx/(1+exp((rcm-x0)/dx))**2
@@ -292,7 +292,7 @@ class EqGrid(object):
             Te   = array([9.,  9.,  8.2, 7.,  4.5,  2.5,  1.75, 1.7]) # in eV
             s = ProfileFit(r_m, Te)
             te[0,:] = s(x)
-            import BOUTppmath
+            from . import BOUTppmath
             te[1,:] = BOUTppmath.deriv_full(te[0,:], self.h)
 
         elif p == 'LAPD_rotating':
@@ -304,7 +304,7 @@ class EqGrid(object):
             Te   = array([7.8, 7.8, 7.8,  8.1,  7.,   5.3,  5.1,  5.2,  5.3,  5.4]) # in eV
             s = ProfileFit(r_m, Te, ra, rb, norm=7.8) # x=0..1 interval is mapped to r=ra..rb
             te[0,:] = s(x)
-            import BOUTppmath
+            from . import BOUTppmath
             te[1,:] = BOUTppmath.deriv_full(te[0,:], self.h)
 
         elif p == 'gauss':
@@ -340,7 +340,7 @@ class EqGrid(object):
             tnorm = 7.1 # normalization for Te
             s = ProfileFit(r_m, Te, ra, rb, norm=tnorm) # x=0..1 interval is mapped to r=ra..rb
             te[0,:] = s(x)
-            import BOUTppmath
+            from . import BOUTppmath
             te[1,:] = BOUTppmath.deriv_full(te[0,:], self.h)
 
         elif p == 'DaveA_set2_avg':
@@ -354,7 +354,7 @@ class EqGrid(object):
             tnorm = 6.7543 # normalization for Te
             s = ProfileFit(r_m, Te, ra, rb, norm=tnorm) # x=0..1 interval is mapped to r=ra..rb
             te[0,:] = s(x)
-            import BOUTppmath
+            from . import BOUTppmath
             te[1,:] = BOUTppmath.deriv_full(te[0,:], self.h)
 
 
