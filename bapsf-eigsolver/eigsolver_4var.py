@@ -73,10 +73,10 @@ from numpy import *
 from scipy import optimize
 from scipy.interpolate.fitpack2 import UnivariateSpline
 import sympy
-from . import eigmath as em
+import eigmath as em
 
-from . import misctools as mt
-from . import profiles
+import misctools as mt
+import profiles
 
 
 # ==== Grid and physical parameters ==============================
