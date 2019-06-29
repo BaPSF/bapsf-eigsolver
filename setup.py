@@ -62,7 +62,7 @@ with open('README.md', 'r') as fh:
 # ---- Perform setup                                                ----
 setup(
     name='bapsf-eigsolver',
-    version=find_version("bapsf-eigsolver", "__init__.py"),
+    version=find_version("bapsf_eigsolver", "__init__.py"),
     description='Eigenvalue solver for modes in the LaPD at UCLA.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
