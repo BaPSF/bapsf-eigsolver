@@ -1,8 +1,8 @@
+import importlib
 
+from bapsf_eigsolver import eigsolver
 
-import eigsolver
-import imp
-imp.reload(eigsolver)
+importlib.reload(eigsolver)
 
 metric = 'cyl'   # choose cylindrical ('cyl') or slab ('cart') geometry
 equation = eigsolver.SymbolicEq(metric) # Derive the eigenvalue equation in symbolic form
