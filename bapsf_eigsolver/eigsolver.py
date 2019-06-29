@@ -55,15 +55,16 @@ eigsolver.plot_omega(esolver)  # Plot profiles and eigenmodes
 """
 
 import numpy
+import matplotlib.pyplot as plt  # TMP
+import sys
+import sympy
+
 from scipy import optimize
 from scipy.interpolate.fitpack2 import UnivariateSpline
-import sympy
-import BOUTppmath as bout
-import matplotlib.pyplot as plt  #TMP
-import misctools as tools
-import sys
-import profiles
 
+from . import profiles
+from . import BOUTppmath as bout
+from . import misctools as tools
 
 # ==== Grid and physical parameters ==============================
 
