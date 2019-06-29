@@ -1,5 +1,5 @@
-import eigsolver
-from misctools import attrdict
+from bapsf_eigsolver import eigsolver
+from bapsf_eigsolver.misctools import attrdict
 
 metric = 'cyl'
 equation = eigsolver.SymbolicEq(metric) # Derive the eigenvalue equation in symbolic form
