@@ -55,3 +55,18 @@ to clean past builds and
 
 to build a new html version of the documentation.  Go to, 
 `./docs/_build/html/index.html` to open the freshly built documentation.
+
+## How to run test script `drift.py`
+
+The test script in located at `bapsf_eigsolver/example/drift.py`.
+
+* To run in a python 3 session
+
+   ``` python
+   with open('<path to script>/drift.py) as f:
+       exec(f.read())
+   ```
+
+* To run in an IPython session `%run <path to script>/drift.py`.
+
+* To run in terminal `python3 -m bapsf_eigsolver.example.drift`.
