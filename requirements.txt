@@ -1,5 +1,9 @@
 # Required Packages
-numpy >= 1.12
-sympy >= 1.1.1
-scipy >= 1.0.0
 matplotlib >= 2.0
+numpy >= 1.12
+scipy >= 1.0.0
+sympy >= 1.1.1
+
+#
+# Add Sphinx/Documentation requirements
+-r docs/requirements.txt
