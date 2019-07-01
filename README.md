@@ -41,4 +41,17 @@ documentation,
 ## Documentation
 
 The documentation is hosted on Read the Docs at 
-https://bapsf-eigsolver.readthedocs.io/en/latest.
+https://bapsf-eigsolver.readthedocs.io/en/latest. [**NOTE:** Since this repo
+is a private repo, the Read the Docs version is not updated.]
+
+To build a local copy of documentation navigate to the `./docs` folder and
+execute 
+
+`make clean`
+
+to clean past builds and 
+
+`make html`
+
+to build a new html version of the documentation.  Go to, 
+`./docs/_build/html/index.html` to open the freshly built documentation.
