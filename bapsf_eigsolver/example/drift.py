@@ -1,19 +1,23 @@
+#!/usr/bin/env python3
+
 import importlib
 
 from bapsf_eigsolver import eigsolver
 
 importlib.reload(eigsolver)
 
-metric = 'cyl'   # choose cylindrical ('cyl') or slab ('cart') geometry
-equation = eigsolver.SymbolicEq(metric) # Derive the eigenvalue equation in symbolic form
+# choose cylindrical ('cyl') or slab ('cart') geometry
+metric = 'cyl'
 
-p = eigsolver.PhysParams(Nr=100, np=3, mtheta=27.625)  # define a set of physical
-                      # parameters for the problem (size, profiles, etc)
+# Derive the eigenvalue equation in symbolic form
+equation = eigsolver.SymbolicEq(metric)
 
-esolver = eigsolver.EigSolve(equation, p)  # Solve the eigenvalue problem
+# define a set of physical
+# * parameters for the problem (size, profiles, etc)
+p = eigsolver.PhysParams(Nr=100, np=3, mtheta=27.625)
 
-eigsolver.plot_omega(esolver)  # Plot profiles and eigenmodes
+# Solve the eigenvalue problem
+esolver = eigsolver.EigSolve(equation, p)
 
-
-
-
+# Plot profiles and eigenmodes
+eigsolver.plot_omega(esolver)
