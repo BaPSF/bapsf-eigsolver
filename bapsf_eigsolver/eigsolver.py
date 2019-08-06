@@ -53,18 +53,10 @@ eigsolver.plot_omega(esolver)  # Plot profiles and eigenmodes
 
 
 """
-
+import matplotlib.pyplot as plt
 import numpy
-import matplotlib.pyplot as plt  # TMP
-import sys
 import sympy
-
-from scipy import optimize
-from scipy.interpolate.fitpack2 import UnivariateSpline
-
-# import profiles
-# import BOUTppmath as bout
-# import misctools as tools
+import sys
 
 from . import profiles
 from . import BOUTppmath as bout
@@ -942,7 +934,7 @@ class EigSolve(object):
         self.alleigval, self.alleigvec = eig(self.MTOT)
 
         # Sort all eigenvalues/vectors by the growth rate
-        s_index = list(range(self.Nr*self.NVAR))
+        s_index = list(range(self.Nr * self.NVAR))
         vv = list(zip(self.alleigval, s_index))
 
         # Sorting with lambda:
