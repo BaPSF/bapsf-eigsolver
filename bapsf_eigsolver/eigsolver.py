@@ -390,8 +390,11 @@ class SymbolicEq(object):
                                                          # Here, varpack is the unified package of all variables, created above
 
         self.symb_RHS = [-eq.coeff(self.varpack.omega0) for eq in self.symb_eq] # all terms containing omega0, they appear with a "-" on the RHS
-        self.symb_LHS = [eq + rhs*self.varpack.omega0 for (eq,rhs) in zip(self.symb_eq, self.symb_RHS)] # all terms without omega0
-        #print(self.symb_LHS[2])
+        self.symb_LHS = []
+        for i in range(3):
+            self.symb_LHS.append(self.symb_eq[i]+(self.symb_RHS[i] * self.varpack.omega0))
+            self.symb_LHS[i] = sympy.simplify(self.symb_LHS[i])
+        #self.symb_LHS = [eq + rhs*self.varpack.omega0 for (eq,rhs) in zip(self.symb_eq, self.symb_RHS)] # all terms without omega0
         self.NVAR = 3  # Number of variables/equations
         self.vars = [self.varpack.N, self.varpack.v_par, self.varpack.phi] #this is
          
@@ -510,7 +513,6 @@ class SymbolicEq(object):
                       + (p.N_total*p.fv_par).diff(p.z)                              # div_par Jpar
                                 ) / p.Eig_func))                                         #/ p.N0 / p.Eig_func)
         
-        #print (Ni_eq)
         
         # Vparallel equation: parallel electron momentum
         V_par_eq = sympy.simplify((
@@ -627,6 +629,7 @@ class SymbolicEq(object):
             sf = sf.subs(p.k, pvalues.k)
             sf = sf.subs(p.nu_in, pvalues.nu_in)
             sf = sf.subs(p.mu, pvalues.mu)
+            sf = sf.subs(p.m_theta, pvalues.m_theta)
             
             # Substitute functions(r) and their derivatives by simple names suitable for 
             # further substitution by a vector
@@ -647,16 +650,7 @@ class SymbolicEq(object):
         dv = sympy.Symbol("dummyvec") 
         sf = sf + dv
       
-        #print ("final",sf)
         f = sympy.lambdify((p.r, ni, te, phi, nu_e, p.mu_ii, dv), sf)
-        '''r = 1
-        ni = [2, 2, 2]
-        te = 3
-        phi = 4
-        nu_e = 5
-        mu_ii = 6
-        dv = 7
-        f(r, ni,te,phi,nu_e,mu_ii,dv)'''
         return f
 
 
@@ -685,15 +679,8 @@ class SymbolicEq(object):
                 coeffs = self.get_Dvar_coeffs(self.symb_LHS[i_eq], # linear equation
                                               self.vars[i_var],    # variable (N,v_par,phi)
                                               self.varpack.r)      # radial variable -- symbolic
-                #print (coeffs)
-                #I = complex(0., 1)
-                #r, th, z, t  = sympy.symbols('r theta z t')
-                #N0  = sympy.Function('N0')(r)
-                #omega0  = sympy.Symbol('omega0')
-                #if (i_eq==2&i_var==2):
-                #    coeffs[2] = coeffs[2] + 1.0*I*omega0*N0
+                
                 for i_order in range(3):
-                    #print ("Lhs", i_eq, i_var, i_order)
                     LHS_fcoeff[i_eq][i_var][i_order] = \
                            self.compile_function(coeffs[i_order], self.varpack, pvalues)
 
@@ -703,7 +690,6 @@ class SymbolicEq(object):
                                               self.varpack.r)      # radial variable -- symbolic
                     
                 for i_order in range(3):
-                    #print ("rhs", i_eq, i_var, i_order)
                     RHS_fcoeff[i_eq][i_var][i_order] = \
                            self.compile_function(coeffs[i_order], self.varpack, pvalues)
 
@@ -759,14 +745,13 @@ class EigSolve(object):
 
         self.MLHS = numpy.zeros((self.NTOT,self.NTOT), complex)
         self.MRHS = numpy.zeros((self.NTOT,self.NTOT), complex)
-        #print (len(self.MLHS[0]))
         
 
         print("Constructing the finite differences matrix...")
         for i_eq in range(self.NVAR):
             for i_var in range(self.NVAR):
                 for ir in range(1,self.Nr-1):
-                
+                    
                     self.MLHS[self.i_lkp(ir,i_eq), self.i_lkp(ir,i_var)] = (
                         -2*self.LHS_fcoeff[i_eq][i_var][2](r,ni,te,phi,nu_e,mu_ii,dv) 
                          + self.LHS_fcoeff[i_eq][i_var][0](r,ni,te,phi,nu_e,mu_ii,dv)*self.pvalues.dr**2 
@@ -831,7 +816,6 @@ class EigSolve(object):
         # Sorting with lambda:
         #vv_sorted = sorted(vv, lambda x, y: int(sign(x[0].imag-y[0].imag))) # sort by imag
 
-
         # Set of functions for sorting the eigenvalues -- more flexible than lambda sorting
         def fc_gamma_asc(x,y):
             # sort by gamma, ascending
@@ -854,11 +838,30 @@ class EigSolve(object):
             else:
                 return int(numpy.sign(abs(x[0].real)-abs(y[0].real)))
 
+        def cmp_to_key(mycmp):
+            #'Convert a cmp= function into a key= function'
+            class K:
+                def __init__(self, obj, *args):
+                    self.obj = obj
+                def __lt__(self, other):
+                    return mycmp(self.obj, other.obj) < 0
+                def __gt__(self, other):
+                    return mycmp(self.obj, other.obj) > 0
+                def __eq__(self, other):
+                    return mycmp(self.obj, other.obj) == 0
+                def __le__(self, other):
+                    return mycmp(self.obj, other.obj) <= 0
+                def __ge__(self, other):
+                    return mycmp(self.obj, other.obj) >= 0
+                def __ne__(self, other):
+                    return mycmp(self.obj, other.obj) != 0
+            return K
+
         try:
             fsort = {"gamma_asc"    : fc_gamma_asc,
                      "abs_des"      : fc_abs_des,
                      "absomega_asc" : fc_absomega_asc}[sortby]
-            vv_sorted = sorted(vv, fsort)  # sort the eigenvalues according to sortby parameter
+            vv_sorted = sorted(vv, key=cmp_to_key(fsort))  # sort the eigenvalues according to sortby parameter
         except KeyError:
             print("Error: Wrong sort parameter!")
             vv_sorted = vv  # don't sort if sortby is wrong
@@ -923,7 +926,7 @@ def plot_omega(esolver, ommin=None, ommax=None, interactive=False, pos=-1):
     fig = plt.figure(1, figsize=(10,10))
     fig.clf()
 
-    plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.95) # reduce subplot margins
+    #plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.95) # reduce subplot margins
     prop = matplotlib.font_manager.FontProperties(size=10) # reduce legend font size
 
     # -----------------------------------------
