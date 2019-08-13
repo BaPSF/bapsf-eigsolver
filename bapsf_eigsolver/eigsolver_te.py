@@ -80,7 +80,7 @@ class PhysParams(object):
             for (key, val) in list(self.LAPDset.items()):
                 setattr(self, key, val)
         # TMP
-        self.sw = ones(15)  # switches for different terms in the dispersion relation
+        self.sw = numpy.ones(15)  # switches for different terms in the dispersion relation
         self.param = {}  # additional parameters for profile control 
         self.nparam = {}
         self.tparam = {}
@@ -122,7 +122,7 @@ class PhysParams(object):
         p = self  # just to avoid replacing p. everywhere
         p.I = ii  # needed for lambdify function
         p.mu   = p.aa*1836.  # Mi/me
-        Cs   = 9.79e3*sqrt(p.te0/p.aa)   # ion sound velocity, m/s
+        Cs   = 9.79e3*numpy.sqrt(p.te0/p.aa)   # ion sound velocity, m/s
         p.Om_CI = 9.58e3/p.aa*p.b0*1.e4  # ion gyrofrequency, 1/s
         p.rho_s = Cs/p.Om_CI # [m]
 
@@ -137,10 +137,10 @@ class PhysParams(object):
         p.rmax = p.rmax_m/p.rho_s
         p.Ln = p.Ln_m/p.rho_s
         p.Lz = p.Lz_m/p.rho_s
-        p.kpar = 2.*pi/p.Lz  # parallel wave number, rho_s
+        p.kpar = 2.*numpy.pi/p.Lz  # parallel wave number, rho_s
         p.k = p.kpar*p.nz
 
-        kx = p.nr*2.*pi/(p.rmax-p.rmin)  # normalized to 1/rho_s
+        kx = p.nr*2.*numpy.pi/(p.rmax-p.rmin)  # normalized to 1/rho_s
         ky = p.mtheta/(p.rmin+p.rmax)*2. # estimate, normilized to 1/rho_s
 
         p.omstar = ky/p.Ln   # normalized to Om_CI, dimensionless
@@ -158,7 +158,7 @@ class PhysParams(object):
 
         # Set the nu_ei radial profile (normalized to OmCI)
         #logLam=24.D - alog(sqrt(p.n0*p.ni_arr*1.D-6)/p.Te)
-        logLam=24. - log(sqrt(p.n0*1.e-6)/p.te0)  # constant logLam - to agree with BOUT formulation
+        logLam=24. - numpy.log(numpy.sqrt(p.n0*1.e-6)/p.te0)  # constant logLam - to agree with BOUT formulation
         p.logLam = logLam
 
         p.nuei_arr=(p.zeff*2.91e-6*(p.n0*p.grid.ni[0]*1.e-6)*logLam 
@@ -171,9 +171,9 @@ class PhysParams(object):
         p.spar = p.mu/p.nuei_arr[0]*p.nz**2*p.kpar**2/(kx**2+ky**2)  # normalized to Om_CI, dimensionless
 
         # Calculate the radial profiles with the correct normalizations
-        p.ni  = zeros(p.grid.ni.shape)
-        p.te  = zeros(p.grid.te.shape)
-        p.phi = zeros(p.grid.phi.shape)
+        p.ni  = numpy.zeros(p.grid.ni.shape)
+        p.te  = numpy.zeros(p.grid.te.shape)
+        p.phi = numpy.zeros(p.grid.phi.shape)
 
         # transform the derivatives from d/dx to d/dr
         for i in range(p.ni.shape[0]):
@@ -186,10 +186,10 @@ class PhysParams(object):
 
         # Calculate ion-ion viscosity (Braginskii expression eta_1)
         ZZ=1.
-        lambda_ii = 23.-log(ZZ**3*sqrt(2.*p.n0*1.e-6)/p.ti0**1.5)
+        lambda_ii = 23.-numpy.log(ZZ**3*numpy.sqrt(2.*p.n0*1.e-6)/p.ti0**1.5)
 
-        nu_ii = 4.78e-8 * ZZ**4 / sqrt(p.aa) * p.n0*1.e-6*p.ni[0] * p.logLam / p.ti0**1.5
-        nu_ii = 4.78e-8 * ZZ**4 / sqrt(p.aa) * p.n0*1.e-6*p.ni[0] * lambda_ii / p.ti0**1.5
+        nu_ii = 4.78e-8 * ZZ**4 / numpy.sqrt(p.aa) * p.n0*1.e-6*p.ni[0] * p.logLam / p.ti0**1.5
+        nu_ii = 4.78e-8 * ZZ**4 / numpy.sqrt(p.aa) * p.n0*1.e-6*p.ni[0] * lambda_ii / p.ti0**1.5
                 # nu_ii in 1/s
         p.nu_ii = nu_ii
  
@@ -232,7 +232,7 @@ class PhysParams(object):
         for key in keys:
             if not ((key in self.LAPDset)or(key in excludelist)):
                 val = getattr(self, key)
-                if isinstance(val, ndarray): # array
+                if isinstance(val, numpy.ndarray): # array
                     print("%10s = %s, size %s" % (key, "array", val.shape))
                 else:
                     print("%10s = %s" % (key, val))
@@ -255,11 +255,11 @@ def blendparams(p1, p2, frac, flog=False):
         return v1*(1.-frac) + v2*frac
 
     def logmix(v1,v2,frac):
-        if not(isinstance(v1, ndarray)): # called with scalar arguments -- check signs
+        if not(isinstance(v1, numpy.ndarray)): # called with scalar arguments -- check signs
             if v1*v2<0:
                 raise Exception("Can't mix positive and negative values as 'log' fraction!")
         # Assume array arguments have the right sizes
-        return sign(v1)*abs(v1)**(1.-frac)*abs(v2)**frac
+        return numpy.sign(v1)*abs(v1)**(1.-frac)*abs(v2)**frac
 
     if flog:
         f = logmix
@@ -277,14 +277,14 @@ def blendparams(p1, p2, frac, flog=False):
 
     if (p1.np==p2.np)and(p1.tp==p2.tp)and(p1.pp==p2.pp):
         # Profiles don't change, but rmin/rmax might change
-        p.grid = EqGrid(Nr=p1.Nr, np=p1.np, tp=p1.tp, pp=p1.pp, 
+        p.grid = profiles.EqGrid(Nr=p1.Nr, np=p1.np, tp=p1.tp, pp=p1.pp,
                         param=p1.param,
                         nparam=p1.nparam, tparam=p1.tparam, pparam=p1.pparam)  
         #TODO: implement param argument correctly
 
     else:
         # Assume rmin/rmax don't change, but np/tp/pp do. Mix the ni/te/phi0 profiles
-        p.grid  = EqGrid(Nr=p1.Nr)  # create new grid object  #TMP: add param argument
+        p.grid  = profiles.EqGrid(Nr=p1.Nr)  # create new grid object  #TMP: add param argument
 
         for i in range(p.ni.shape[0]):
             p.grid.ni[i]  = f(p1.grid.ni[i], p2.grid.ni[i], frac)
@@ -318,7 +318,7 @@ class SymbolicEq(object):
                                                          # stored as list of sympy objects
 
         self.symb_RHS = [-eq.coeff(self.varpack.omega0) for eq in self.symb_eq] # all terms containing omega0, they appear with a "-" on the RHS
-        self.symb_LHS = [eq + rhs*self.varpack.omega0 for (eq,rhs) in zip(self.symb_eq, self.symb_RHS)] # all terms without omega0
+        self.symb_LHS = [sympy.simplify(eq + rhs*self.varpack.omega0) for (eq,rhs) in zip(self.symb_eq, self.symb_RHS)] # all terms without omega0
 
         self.NVAR = 4  # Number of variables/equations
         self.vars = [self.varpack.N, self.varpack.vpar, self.varpack.phi, self.varpack.Te]
@@ -369,11 +369,11 @@ class SymbolicEq(object):
 
 
         # More functions used in several places
-        gphi = Grad(fphi, x, metric)  # Grad of full potential
-        gperpphi = CrossProd(b0, CrossProd(gphi, b0))  # perpendicular (to b0) part of Grad Phi
-        vort = DivPerp(fN*GradPerp(fphi, x, metric), x, metric) # BOUT definition of vorticity
-        bxGradN = CrossProd(b0, Grad(fN, x, metric)) # temp variable, used in the vorticity eq.
-        vE = CrossProd(b0, gphi)  # ExB drift velocity, equilibrium + perturbation
+        gphi = bout.Grad(fphi, x, metric)  # Grad of full potential
+        gperpphi = bout.CrossProd(b0, bout.CrossProd(gphi, b0))  # perpendicular (to b0) part of Grad Phi
+        vort = bout.DivPerp(fN*bout.GradPerp(fphi, x, metric), x, metric) # BOUT definition of vorticity
+        bxGradN = bout.CrossProd(b0, bout.Grad(fN, x, metric)) # temp variable, used in the vorticity eq.
+        vE = bout.CrossProd(b0, gphi)  # ExB drift velocity, equilibrium + perturbation
 
 
         # Pack everything in one variable
@@ -392,7 +392,7 @@ class SymbolicEq(object):
         """Combine all symbols/function into a dictionary
         Input: first all symbols, then (last) a dictionary of all functions (name:function)
         """
-        d = attrdict()
+        d = tools.attrdict()
         for arg in args[:-1]:
             d[arg.name] = arg
         for key, item in list(args[-1].items()):
@@ -410,41 +410,41 @@ class SymbolicEq(object):
 
 
         # Density equation
-        Ni_eq  = sympy.simplify((
+        Ni_eq  = sympy.expand(sympy.simplify((
                         p.fN.diff(p.t)                            # dN/dt
-                      + DotProd(p.vE, Grad(p.fN, p.x, p.metric))  # vE.Grad(N)
+                      + bout.DotProd(p.vE, bout.Grad(p.fN, p.x, p.metric))  # vE.Grad(N)
                       + (p.fN*p.fvpar).diff(p.z)                  # div_par Jpar
-                                ) / p.FExp) #/ p.N0 / p.FExp)
+                                ) / p.FExp)) #/ p.N0 / p.FExp)
         
 
         # Vparallel equation: parallel electron momentum
-        Vpar_eq = sympy.simplify((
+        Vpar_eq = sympy.expand(sympy.simplify((
                         p.fvpar.diff(p.t)                            # d vpar/dt
-                      + DotProd(p.vE, Grad(p.fvpar, p.x, p.metric))  # vE.grad(vpar)
+                      + bout.DotProd(p.vE, bout.Grad(p.fvpar, p.x, p.metric))  # vE.grad(vpar)
                       + p.mu*(p.fN*p.Te0).diff(p.z)/p.N0             # mu Grad_par(N Te0) / Ni0
                       + p.mu*1.71*(p.fTe).diff(p.z)                  # 1.71 mu Grad_par(Te)
                       - p.mu*p.fphi.diff(p.z)                        # mu Grad_par(phi)
                       + p.nu_e*p.fvpar                               # nu_e vpar
-                                 ) / p.FExp)
+                                 ) / p.FExp))
     
 
 
         # BOUT vorticity equation: Alternative formulation
         print("Using BOUT vorticity equation.")
-        Phi_eq = (
+        Phi_eq = sympy.expand((
                p.vort.diff(p.t) 
              + (p.fN*p.fvpar).diff(p.z)
-             + DotProd(p.vE, Grad(p.vort, p.x, p.metric))
-             - 0.5*DotProd( p.bxGradN, Grad(DotProd(p.vE,p.vE), p.x, p.metric))
+             + bout.DotProd(p.vE, bout.Grad(p.vort, p.x, p.metric))
+             - 0.5*bout.DotProd( p.bxGradN, bout.Grad(bout.DotProd(p.vE,p.vE), p.x, p.metric))
              + p.nu_in*p.vort
-             - p.mu_ii*Delp2Perp(p.vort, p.x, p.metric)
-                 ) / p.FExp # / p.N0
+             - p.mu_ii*bout.Delp2Perp(p.vort, p.x, p.metric)
+                 ) / p.FExp) # / p.N0
 
 
-        Te_eq = (
+        Te_eq = sympy.expand((
             p.fTe.diff(p.t)
-            + DotProd(p.vE, Grad(p.fTe, p.x, p.metric))
-            ) / p.FExp
+            + bout.DotProd(p.vE, bout.Grad(p.fTe, p.x, p.metric))
+            ) / p.FExp)
 
 
 
@@ -503,6 +503,7 @@ class SymbolicEq(object):
             sf = sf.subs(p.k, pvalues.k)
             sf = sf.subs(p.nu_in, pvalues.nu_in)
             sf = sf.subs(p.mu, pvalues.mu)
+            sf = sf.subs(p.mtheta, pvalues.mtheta)
 
             # Substitute functions(r) and their derivatives by simple names suitable for 
             # further substitution by a vector
@@ -611,10 +612,10 @@ class EigSolve(object):
         phi  = self.pvalues.phi
         nu_e = self.pvalues.nuei_arr
         mu_ii= self.pvalues.mu_ii
-        dv = zeros(self.Nr)  # the dummyvec argument for compiled functions
+        dv = numpy.zeros(self.Nr)  # the dummyvec argument for compiled functions
 
-        self.MLHS = zeros((self.NTOT,self.NTOT), complex)
-        self.MRHS = zeros((self.NTOT,self.NTOT), complex)
+        self.MLHS = numpy.zeros((self.NTOT,self.NTOT), complex)
+        self.MRHS = numpy.zeros((self.NTOT,self.NTOT), complex)
 
         print("Constructing the finite differences matrix...")
         for i_eq in range(self.NVAR):
@@ -664,7 +665,7 @@ class EigSolve(object):
 
                 
         print("Solving the linear system...")
-        self.MTOT = dot(linalg.inv(self.MRHS), self.MLHS)
+        self.MTOT = numpy.dot(numpy.linalg.inv(self.MRHS), self.MLHS)
         print("Done")
 
 #        from misctools import ppmatrix
@@ -689,10 +690,10 @@ class EigSolve(object):
         # Set of functions for sorting the eigenvalues -- more flexible than lambda sorting
         def fc_gamma_asc(x,y):
             # sort by gamma, ascending
-            return int(sign(x[0].imag-y[0].imag))
+            return int(numpy.sign(x[0].imag-y[0].imag))
         def fc_abs_des(x,y):
             # sort by abs of the eigenvalue, descending
-            return int(sign(abs(y[0])-abs(x[0])))
+            return int(numpy.sign(abs(y[0])-abs(x[0])))
         def fc_absomega_asc(x,y):
             # sort by abs(omega), ascending, only growing modes
             # exclude omega=1 (values due to BC at matrix corners)
@@ -706,13 +707,39 @@ class EigSolve(object):
             elif abs((y[0].real - 1))<1.e-10:
                 return 1
             else:
-                return int(sign(abs(x[0].real)-abs(y[0].real)))
+                return int(numpy.sign(abs(x[0].real)-abs(y[0].real)))
+
+        def cmp_to_key(mycmp):
+            # 'Convert a cmp= function into a key= function'
+            class K:
+                def __init__(self, obj, *args):
+                    self.obj = obj
+
+                def __lt__(self, other):
+                    return mycmp(self.obj, other.obj) < 0
+
+                def __gt__(self, other):
+                    return mycmp(self.obj, other.obj) > 0
+
+                def __eq__(self, other):
+                    return mycmp(self.obj, other.obj) == 0
+
+                def __le__(self, other):
+                    return mycmp(self.obj, other.obj) <= 0
+
+                def __ge__(self, other):
+                    return mycmp(self.obj, other.obj) >= 0
+
+                def __ne__(self, other):
+                    return mycmp(self.obj, other.obj) != 0
+
+            return K
 
         try:
             fsort = {"gamma_asc"    : fc_gamma_asc,
                      "abs_des"      : fc_abs_des,
                      "absomega_asc" : fc_absomega_asc}[sortby]
-            vv_sorted = sorted(vv, fsort)  # sort the eigenvalues according to sortby parameter
+            vv_sorted = sorted(vv, key=cmp_to_key(fsort))  # sort the eigenvalues according to sortby parameter
         except KeyError:
             print("Error: Wrong sort parameter!")
             vv_sorted = vv  # don't sort if sortby is wrong
@@ -733,8 +760,8 @@ class EigSolve(object):
 
         self.crossphase_ni = self.ni_phi_phase()
         self.crossphase_te = self.te_phi_phase()
-        self.avgphase_ni = sqrt((self.crossphase_ni[1:-1,-1]**2).mean())
-        self.avgphase_te = sqrt((self.crossphase_te[1:-1,-1]**2).mean())
+        self.avgphase_ni = numpy.sqrt((self.crossphase_ni[1:-1,-1]**2).mean())
+        self.avgphase_te = numpy.sqrt((self.crossphase_te[1:-1,-1]**2).mean())
 
 
         return self.alleigval[-1]
@@ -744,11 +771,11 @@ class EigSolve(object):
         # Calculate cross phase between ni and phi
 
         def atan2vec(yv,xv):
-            return array([math.atan2(y,x) for (x,y) in zip(xv,yv)])
+            return numpy.array([numpy.arctan2(y,x) for (x,y) in zip(xv,yv)])
 
         val = self.eigN/self.eigPhi
 
-        phase = zeros(val.shape)
+        phase = numpy.zeros(val.shape)
         for eig in range(self.Nr*self.NVAR):
             phase[:,eig] = atan2vec(val[:,eig].imag, val[:,eig].real)
         
@@ -758,11 +785,11 @@ class EigSolve(object):
         # Calculate cross phase between ni and phi
 
         def atan2vec(yv,xv):
-            return array([math.atan2(y,x) for (x,y) in zip(xv,yv)])
+            return numpy.array([numpy.arctan2(y,x) for (x,y) in zip(xv,yv)])
 
         val = self.eigTe/self.eigPhi
 
-        phase = zeros(val.shape)
+        phase = numpy.zeros(val.shape)
         for eig in range(self.Nr*self.NVAR):
             phase[:,eig] = atan2vec(val[:,eig].imag, val[:,eig].real)
         
@@ -789,17 +816,17 @@ def plot_omega(esolver, ommin=None, ommax=None, interactive=False, pos=-1):
 
     import matplotlib.font_manager
 
-    ioff()  # turn off matplotlib interactive regime for faster plotting
+    plt.ioff()  # turn off matplotlib interactive regime for faster plotting
 
-    fig = figure(1, figsize=(10,10))
+    fig = plt.figure(1, figsize=(10,10))
     fig.clf()
 
-    subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.95) # reduce subplot margins
+    #subplots_adjust(left=0.05, right=0.95, bottom=0.05, top=0.95) # reduce subplot margins
     prop = matplotlib.font_manager.FontProperties(size=10) # reduce legend font size
 
     # -----------------------------------------
     # Plot the equilibrium profiles
-    a=subplot(2,2,1)
+    a=plt.subplot(2,2,1)
 
     def plot_scale(a, x, y, scale, label):
         # Force the profile to 0 if the corresponding scale is 0
@@ -815,19 +842,19 @@ def plot_omega(esolver, ommin=None, ommax=None, interactive=False, pos=-1):
     plot_scale(a, esolver.pvalues.grid.x, esolver.pvalues.grid.phi[0], 
                         esolver.pvalues.phi0v, r'$\phi_0/$%.2fV' % esolver.pvalues.phi0v)
     a.legend(prop=prop)
-    xlabel('x')
+    plt.xlabel('x')
 
 
     # -----------------------------------------
     def plot_eigenvalues(pos):
         # Plot the eigenvalues, highlight the value at position=pos
-        a=subplot(2,2,2)
+        a=plt.subplot(2,2,2)
         a.clear()
         a.plot(esolver.alleigval.real, esolver.alleigval.imag, 'o')
         a.plot([esolver.alleigval[pos].real], [esolver.alleigval[pos].imag], 'ro', markersize=10)
         a.axis([omre[0], omre[1], omim[0], omim[1]])
-        xlabel(r'$Re(\omega/\Omega_{ci})$')
-        ylabel(r'$Im(\omega/\Omega_{ci})$')
+        plt.xlabel(r'$Re(\omega/\Omega_{ci})$')
+        plt.ylabel(r'$Im(\omega/\Omega_{ci})$')
 
 
     # -----------------------------------------
@@ -837,7 +864,7 @@ def plot_omega(esolver, ommin=None, ommax=None, interactive=False, pos=-1):
         # type=polar: plot amplitude and phase
 
         def atan2vec(yv,xv):
-            return array([math.atan2(y,x) for (x,y) in zip(xv,yv)])
+            return numpy.array([numpy.arctan2(y,x) for (x,y) in zip(xv,yv)])
 
         if type == 'cart':
             vp1 = esolver.eigPhi[:,pos].real
@@ -860,27 +887,27 @@ def plot_omega(esolver, ommin=None, ommax=None, interactive=False, pos=-1):
             vn2label = r'$Phase(Ni)$'
 
         # Phi
-        a=subplot(2,2,3)
+        a=plt.subplot(2,2,3)
         a.clear()
         a.plot(esolver.pvalues.grid.x, vp1, label=vp1label)
         a.plot(esolver.pvalues.grid.x, vp2, label=vp2label)
         a.legend(prop=prop)
-        xlabel('x')
+        plt.xlabel('x')
         # Ni
-        a=subplot(2,2,4)
+        a=plt.subplot(2,2,4)
         a.clear()
         a.plot(esolver.pvalues.grid.x, vn1, label=vn1label)
         a.plot(esolver.pvalues.grid.x, vn2, label=vn2label)
         a.legend(prop=prop)
-        xlabel('x')
+        plt.xlabel('x')
 
 
     plot_eigenvalues(pos)
     plot_eigenvectors(pos, type='cart')
 
-    draw(); fig.canvas.flush_events()
-    show()
-    ion()
+    plt.draw(); fig.canvas.flush_events()
+    plt.show()
+    plt.ion()
 
 
     if interactive:
@@ -904,7 +931,7 @@ def plot_omega(esolver, ommin=None, ommax=None, interactive=False, pos=-1):
             plot_eigenvalues(pos_click)
             plot_eigenvectors(pos_click)
 
-            draw(); fig.canvas.flush_events()
+            plt.draw(); fig.canvas.flush_events()
 
 
 
@@ -958,23 +985,23 @@ def trace_root(equation, p1, p2, nfrac=100, accumulate=1.,
 
         if (not noplots) and plotparam and (i % 5 == 4):
             # Update parameter scan plot
-            rc('text', usetex=True)
-            rc('font', family='serif')
+            plt.rc('text', usetex=True)
+            plt.rc('font', family='serif')
 
-            fig = figure(2, figsize=(7,7))
+            fig = plt.figure(2, figsize=(7,7))
             fig.clf()
-            p_param = array([getattr(p,plotparam) for p in scanres])
-            p_omega = array([p.omega0.real for p in scanres])
-            p_gamma = array([p.omega0.imag for p in scanres])
-            a=subplot(1,2,1)
+            p_param = numpy.array([getattr(p,plotparam) for p in scanres])
+            p_omega = numpy.array([p.omega0.real for p in scanres])
+            p_gamma = numpy.array([p.omega0.imag for p in scanres])
+            a=plt.subplot(1,2,1)
             a.plot(p_param, p_omega, 'o-', label=r'\omega')
-            xlabel(plotparam)
+            plt.xlabel(plotparam)
             a.legend()
-            a=subplot(1,2,2)
+            a=plt.subplot(1,2,2)
             a.plot(p_param, p_gamma, 'o-', label=r'\gamma')
-            xlabel(plotparam)
+            plt.xlabel(plotparam)
             a.legend()
-            draw()
+            plt.draw()
             fig.show()
             
 
@@ -986,10 +1013,10 @@ def trace_root(equation, p1, p2, nfrac=100, accumulate=1.,
 
     if plotparam:
         # Save the scan data in ascii file
-        p_param = array([getattr(p,plotparam) for p in scanres])
-        p_omega = array([p.omega0.real for p in scanres])
-        p_gamma = array([p.omega0.imag for p in scanres])
-        savetxt('scan_%s.txt' % plotparam, transpose(array([p_param, p_omega, p_gamma])))
+        p_param = numpy.array([getattr(p,plotparam) for p in scanres])
+        p_omega = numpy.array([p.omega0.real for p in scanres])
+        p_gamma = numpy.array([p.omega0.imag for p in scanres])
+        numpy.savetxt('scan_%s.txt' % plotparam, numpy.transpose(numpy.array([p_param, p_omega, p_gamma])))
 
         # Find the fastest growing mode
         a=p_gamma.argmax()
@@ -1012,7 +1039,7 @@ def save_scan(scanres, fname='trace_scan.dat'):
     data = {}  # dictionary of vector values, data only (no functions) -- pickle-able object
 
     for key in keys:
-        val = array([getattr(p,key) for p in scanres])  # extract the data from scanres
+        val = numpy.array([getattr(p,key) for p in scanres])  # extract the data from scanres
         data[key] = val
 
     pickle.dump(data, f)
@@ -1048,11 +1075,11 @@ def combine_scans(*d, **darg):
     dnew = d[0]
     for key in list(d[0].keys()):
         for darg in d[1:]:
-            dnew[key] = append(dnew[key], darg[key])
+            dnew[key] = numpy.append(dnew[key], darg[key])
 
     # Sort if asked
     if sortparam:
-        idx = argsort(dnew[sortparam])
+        idx = numpy.argsort(dnew[sortparam])
         for key in list(dnew.keys()):
             dnew[key] = dnew[key][idx]
 
