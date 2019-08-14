@@ -207,21 +207,20 @@ class PhysParams(object):
 
         # Set the nu_ei radial profile (normalized to OmCI)
         # logLam (Coloumb logarithm) = 24.D - alog(sqrt(p.n0*p.ni_arr*1.D-6)/p.Te)
-        logLam = 24. - numpy.log(numpy.sqrt(p.n0*1.e-6)/p.te0)  # constant logLam - to agree with BOUT formulation
-        p.logLam = logLam # not needed?
+        p.logLam = 24. - numpy.log(numpy.sqrt(p.n0*1.e-6)/p.te0)  # constant logLam - to agree with BOUT formulation
 
-        p.nuei_arr=(p.zeff*2.91e-6*(p.n0*p.grid.ni[0]*1.e-6)*logLam
-                    /(p.te0*p.grid.te[0])**1.5 * 0.51 / p.Om_CI)
+        p.nuei_arr = (p.zeff*2.91e-6*(p.n0*p.grid.ni[0]*1.e-6)*p.logLam
+                      / (p.te0*p.grid.te[0])**1.5 * 0.51 / p.Om_CI)
 
         # If nu_e set to some value (>0) then use constant collisionality
         # (like in the NLD case)
         # if (p.nu_e gt 0.D) then p.nuei_arr[*] = p.nu_e
 
         p.spar = p.mu/p.nuei_arr[0]*p.nz**2*p.kpar**2/(kx**2+ky**2)  # normalized to Om_CI, dimensionless
-
+        # TODO: find out what this equation is
         # Calculate the radial profiles with the correct normalizations
-        p.ni  = numpy.zeros(p.grid.ni.shape)
-        p.te  = numpy.zeros(p.grid.te.shape)
+        p.ni = numpy.zeros(p.grid.ni.shape)
+        p.te = numpy.zeros(p.grid.te.shape)
         p.phi = numpy.zeros(p.grid.phi.shape)
 
         # transform the derivatives from d/dx to d/dr
@@ -234,7 +233,7 @@ class PhysParams(object):
         p.iLn = -p.ni[1]/p.ni[0]
 
         # Calculate ion-ion viscosity (Braginskii expression eta_1)
-        ZZ = 1.
+        ZZ = 1. # why?
         lambda_ii = 23.-numpy.log(ZZ**3*numpy.sqrt(2.*p.n0*1.e-6)/p.ti0**1.5)
 
         nu_ii = 4.78e-8 * ZZ**4 / numpy.sqrt(p.aa) * p.n0*1.e-6*p.ni[0] * p.logLam / p.ti0**1.5
@@ -242,19 +241,16 @@ class PhysParams(object):
         # nu_ii in 1/s
         p.nu_ii = nu_ii
 
-#  nuiix = 4.78e-8*pow(ZZ,4.)*Ni_x*lambda_ii/pow(Ti_x, 1.5)/sqrt(AA); // 1/s ????
+        #  nuiix = 4.78e-8*pow(ZZ,4.)*Ni_x*lambda_ii/pow(Ti_x, 1.5)/sqrt(AA); // 1/s ????
 
         # eta_1: magnetized ion-ion viscosity, normalized using BOUT convention
-        p.mu_ii = p.mu_fac * (0.3 * p.ti0/p.te0 * (nu_ii / p.Om_CI))
-        p.mu1_ii = p.mu_ii
-
+        p.mu1_ii = p.mu_fac * (0.3 * p.ti0/p.te0 * (nu_ii / p.Om_CI))
 
         # eta_0: unmagnetized ion-ion viscosity, normalized using BOUT convention
-        p.mu_ii = p.mu_fac * (0.96 * p.ti0/p.te0 * p.Om_CI / nu_ii)
-        p.mu0_ii = p.mu_ii
+        p.mu0_ii = p.mu_fac * (0.96 * p.ti0/p.te0 * p.Om_CI / nu_ii)
 
-# (x,y,z)=(10,1,1), mu0_hat=3.107466e+01, mu0=6.254384e-03, Ti=3.000000e-02, Ni=7.745064e-01
-# nuiix=5.695718e+06, mui0_hat(before Te/Ti)=1.614687e-01, l_ei=1.133540e+01, l_ii=5.533709e+00
+        # (x,y,z)=(10,1,1), mu0_hat=3.107466e+01, mu0=6.254384e-03, Ti=3.000000e-02, Ni=7.745064e-01
+        # nuiix=5.695718e+06, mui0_hat(before Te/Ti)=1.614687e-01, l_ei=1.133540e+01, l_ii=5.533709e+00
 
     def update_omega0(self):
         """Update the values that depend on omega0"""
