@@ -65,6 +65,7 @@ from . import misctools as tools
 
 # ==== Grid and physical parameters ==============================
 
+
 class PhysParams(object):
     """Store physical parameters for the eigenvalue problem.
 
@@ -158,7 +159,6 @@ class PhysParams(object):
         self.update_omega0()
 
         omega0 = property(get_omega0, set_omega0)
-
 
     def update_params(self):
         """Calculate the dependent parameters when the independent values change.
@@ -425,7 +425,7 @@ class SymbolicEq(object):
         print("b0=", b0)
 
         # Coordinates and time
-        r, th, z, t = sympy.symbols('r theta z t') # Coordinates and time
+        r, th, z, t = sympy.symbols('r theta z t')  # Coordinates and time
         x = [r, th, z]  # position vector
 
         # -- Parameters --
@@ -630,7 +630,6 @@ class SymbolicEq(object):
              + p.nu_e * p.fv_par)
             / p.eig_func
         ))
-
 
         # BOUT vorticity equation: Alternative formulation
         # 
