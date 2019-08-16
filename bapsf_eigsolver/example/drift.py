@@ -14,7 +14,7 @@ equation = eigsolver.SymbolicEq(metric)
 
 # define a set of physical
 # * parameters for the problem (size, profiles, etc)
-p = eigsolver.PhysParams(Nr=100, np=3, mtheta=27.625)
+p = eigsolver.PhysParams(Nr=100, np=3, m_theta=27.625)
 
 # Solve the eigenvalue problem
 esolver = eigsolver.EigSolve(equation, p)
