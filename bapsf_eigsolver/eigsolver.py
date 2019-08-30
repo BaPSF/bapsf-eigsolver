@@ -66,7 +66,7 @@ from . import misctools as tools
 # ==== Grid and physical parameters ==============================
 
 
-class PhysParams(object):
+class PhysParams(tools.attrdict):
     """Store physical parameters for the eigenvalue problem.
 
     Set the parameters for the plasma device, such as temperature
@@ -86,9 +86,10 @@ class PhysParams(object):
         device     -- the name of the plasma device. If this is LAPD, then the
         function will check that input parameters match those in LAPDset. 
         """
-
+        super().__init__()
         # Default parameters for LAPD device, also the list of all acceptable 
         # arguments for __init__ method
+
         self.LAPDset = {
             "Nr"     : 100,    # Radial grid size (# of intervals)
             "aa"     : 4.,     # Atomic mass for Helium plasma
@@ -120,20 +121,20 @@ class PhysParams(object):
 
         # If the input argument for device is LAPD, the default parameters are set
         if device.upper() == "LAPD":
-            for (key, val) in list(self.LAPDset.items()):
-                setattr(self, key, val)
+            self.update(self.LAPDset)
+            # for (key, val) in list(self.LAPDset.items()):
+            #     setattr(self, key, val)
         # TMP
-        self.sw = numpy.ones(15)  # switches for different terms in the dispersion relation
-        self.param = {}  # additional parameters for profile control 
-        self.nparam = {}
-        self.tparam = {}
-        self.pparam = {}
+        # self.sw = numpy.ones(15)  # switches for different terms in the dispersion relation
+        # self.param = {}  # additional parameters for profile control
+        # self.nparam = {}
+        # self.tparam = {}
+        # self.pparam = {}
 
         # Check that the arguments are valid (one from the LAPDset list above)
         for (key, val) in list(keywords.items()):
             if key in self.LAPDset:
-                # valid key
-                setattr(self, key, val)
+                self[key] = val
             else:
                 print("Wrong argument name: %s !" % key)
 
@@ -148,6 +149,7 @@ class PhysParams(object):
 
         self.update_params() # calculating other parameters for the plasma
         self.omega0 = 1.e-2+1.e-2j # default value for the frequency
+
 
     # Setup omega0 as a property to automatically update the dependent variables
 
@@ -244,7 +246,7 @@ class PhysParams(object):
         #  nuiix = 4.78e-8*pow(ZZ,4.)*Ni_x*lambda_ii/pow(Ti_x, 1.5)/sqrt(AA); // 1/s ????
 
         # eta_1: magnetized ion-ion viscosity, normalized using BOUT convention
-        p.mu1_ii = p.mu_fac * (0.3 * p.ti0/p.te0 * (nu_ii / p.Om_CI))
+        p.mu_ii = p.mu_fac * (0.3 * p.ti0/p.te0 * (nu_ii / p.Om_CI))
 
         # eta_0: unmagnetized ion-ion viscosity, normalized using BOUT convention
         p.mu0_ii = p.mu_fac * (0.96 * p.ti0/p.te0 * p.Om_CI / nu_ii)
@@ -741,6 +743,7 @@ class SymbolicEq(object):
         # argument "dummyvec" with 0 values.
         #
         dv = sympy.Symbol("dummyvec")
+        # dv = sympy.Symbol("dv")
         sf = sf + dv
 
         f = sympy.lambdify((p.r, ni, te, phi, nu_e, p.mu_ii, dv),
@@ -819,17 +822,32 @@ class EigSolve(object):
 
     def fdiff_matrix(self, sortby):
         """Construct the finite difference matrix of the equations"""
+        
+        arg_names = self.equation.arguments
+        print(arg_names)
+        # arg_names[6] = numpy.zeros(self.pvalues.Nr)
+        inputs = {}
+        for name in arg_names:
+            inputs[name] = self.pvalues[name]
+            # except KeyError:
+            #     if name == 'dummyvec':
+            #         inputs['dummyvec'] = numpy.zeros(self.pvalues.Nr)
+            #     else:
+            #         raise KeyError(f'{name} not in PhysParams')
 
-        r = self.pvalues.r  # radial grid, including end points
-        ni = self.pvalues.ni
-        te = self.pvalues.te
-        phi = self.pvalues.phi
-        nu_e = self.pvalues.nuei_arr
-        mu_ii = self.pvalues.mu_ii
-        dv = numpy.zeros(self.Nr)  # the dummyvec argument for compiled functions
+        inputs['dummyvec'] = numpy.zeros(self.Nr)
+        print(inputs)
 
-        MLHS = numpy.zeros((self.NTOT,self.NTOT), complex)
-        MRHS = numpy.zeros((self.NTOT,self.NTOT), complex)
+        # r = self.pvalues.r  # radial grid, including end points
+        # ni = self.pvalues.ni
+        # te = self.pvalues.te
+        # phi = self.pvalues.phi
+        # nu_e = self.pvalues.nuei_arr
+        # mu_ii = self.pvalues.mu_ii
+        # dv = numpy.zeros(self.Nr)  # the dummyvec argument for compiled functions
+
+        MLHS = numpy.zeros((self.NTOT, self.NTOT), complex)
+        MRHS = numpy.zeros((self.NTOT, self.NTOT), complex)
 
         print("Constructing the finite differences matrix...")
         for i_eq in range(self.NVAR):
@@ -837,38 +855,38 @@ class EigSolve(object):
                 for ir in range(1, self.Nr-1):
 
                     MLHS[self.i_lkp(ir, i_eq), self.i_lkp(ir, i_var)] = (
-                        -2*self.LHS_fcoeff[i_eq][i_var][2](r, ni, te, phi, nu_e, mu_ii, dv)
-                        + (self.LHS_fcoeff[i_eq][i_var][0](r, ni, te, phi, nu_e, mu_ii, dv)
+                        -2*self.LHS_fcoeff[i_eq][i_var][2](**inputs)
+                        + (self.LHS_fcoeff[i_eq][i_var][0](**inputs)
                            * self.pvalues.dr ** 2)
                     )[ir]
 
                     MRHS[self.i_lkp(ir, i_eq), self.i_lkp(ir, i_var)] = (
-                        -2*self.RHS_fcoeff[i_eq][i_var][2](r, ni, te, phi, nu_e, mu_ii, dv)
-                        + (self.RHS_fcoeff[i_eq][i_var][0](r, ni, te, phi, nu_e, mu_ii, dv)
+                        -2*self.RHS_fcoeff[i_eq][i_var][2](**inputs)
+                        + (self.RHS_fcoeff[i_eq][i_var][0](**inputs)
                            * self.pvalues.dr ** 2)
                     )[ir]
 
                     MLHS[self.i_lkp(ir, i_eq), self.i_lkp(ir+1, i_var)] = (
-                        self.LHS_fcoeff[i_eq][i_var][2](r, ni, te, phi, nu_e, mu_ii, dv)
-                        + (self.LHS_fcoeff[i_eq][i_var][1](r, ni, te, phi, nu_e, mu_ii, dv)
+                        self.LHS_fcoeff[i_eq][i_var][2](**inputs)
+                        + (self.LHS_fcoeff[i_eq][i_var][1](**inputs)
                            * self.pvalues.dr * 0.5)
                     )[ir]
 
                     MRHS[self.i_lkp(ir, i_eq), self.i_lkp(ir+1, i_var)] = (
-                        self.RHS_fcoeff[i_eq][i_var][2](r, ni, te, phi, nu_e, mu_ii, dv)
-                        + (self.RHS_fcoeff[i_eq][i_var][1](r, ni, te, phi, nu_e, mu_ii, dv)
+                        self.RHS_fcoeff[i_eq][i_var][2](**inputs)
+                        + (self.RHS_fcoeff[i_eq][i_var][1](**inputs)
                            * self.pvalues.dr * 0.5)
                     )[ir]
 
                     MLHS[self.i_lkp(ir, i_eq), self.i_lkp(ir-1, i_var)] = (
-                        self.LHS_fcoeff[i_eq][i_var][2](r, ni, te, phi, nu_e, mu_ii, dv)
-                        - (self.LHS_fcoeff[i_eq][i_var][1](r, ni, te, phi, nu_e, mu_ii, dv)
+                        self.LHS_fcoeff[i_eq][i_var][2](**inputs)
+                        - (self.LHS_fcoeff[i_eq][i_var][1](**inputs)
                            * self.pvalues.dr * 0.5)
                     )[ir]
 
                     MRHS[self.i_lkp(ir, i_eq), self.i_lkp(ir-1, i_var)] = (
-                        self.RHS_fcoeff[i_eq][i_var][2](r, ni, te, phi, nu_e, mu_ii, dv)
-                        - (self.RHS_fcoeff[i_eq][i_var][1](r, ni, te, phi, nu_e, mu_ii, dv)
+                        self.RHS_fcoeff[i_eq][i_var][2](**inputs)
+                        - (self.RHS_fcoeff[i_eq][i_var][1](**inputs)
                            * self.pvalues.dr * 0.5)
                     )[ir]
 
