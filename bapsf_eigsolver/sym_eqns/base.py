@@ -34,8 +34,7 @@ class SymEqBase(ABC):
             self.symb_RHS.append(rhs)
             self.symb_LHS.append(sympy.simplify(eq + (rhs * self.varpack.omega0)))
 
-        self.NVAR = 3
-        self.vars = [self.varpack.N, self.varpack.v_par, self.varpack.phi]
+
 
     def _create_symbols(self, metric):
         """Create all symbols/functions

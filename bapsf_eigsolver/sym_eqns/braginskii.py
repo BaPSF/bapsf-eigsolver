@@ -109,6 +109,9 @@ class Brag(SymEqBase):
         #
         Lin_eq = [eq.coeff(p.epsilon) for eq in Nonlin_eq]
 
+        self.NVAR = 3
+        self.vars = [self.varpack.N, self.varpack.v_par, self.varpack.phi]
+
         print("Done")
 
         return Lin_eq
@@ -162,7 +165,7 @@ class Brag(SymEqBase):
         ni = sympy.Symbol("ni")
         te = sympy.Symbol("te")
         phi = sympy.Symbol("phi")
-        nu_e = sympy.Symbol("nu_e")
+        nuei_arr = sympy.Symbol("nuei_arr")
 
         if sf:
             # Substitute the scalar constants by numerical values
@@ -171,6 +174,7 @@ class Brag(SymEqBase):
             sf = sf.subs(p.nu_in, pvalues.nu_in)
             sf = sf.subs(p.mu, pvalues.mu)
             sf = sf.subs(p.m_theta, pvalues.m_theta)
+            sf = sf.subs(p.nu_e, nuei_arr)
 
             # Substitute functions(r) and their derivatives by
             # simple names suitable for further substitution by a vector
@@ -195,7 +199,7 @@ class Brag(SymEqBase):
         dummyvec = sympy.Symbol("dummyvec")
         sf = sf + dummyvec
 
-        f = sympy.lambdify((p.r, ni, te, phi, nu_e, p.mu_ii, dummyvec),
+        f = sympy.lambdify((p.r, ni, te, phi, nuei_arr, p.mu_ii, dummyvec),
                            sf)
         return f
 
@@ -243,4 +247,4 @@ class Brag(SymEqBase):
 
     @property
     def arguments(self):
-        return 'r', 'ni', 'te', 'phi', 'nu_e', 'mu_ii'
+        return 'r', 'ni', 'te', 'phi', 'nuei_arr', 'mu_ii'

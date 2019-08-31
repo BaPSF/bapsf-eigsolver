@@ -160,7 +160,7 @@ class PhysParams(tools.attrdict):
         self._omega0 = omega0
         self.update_omega0()
 
-        omega0 = property(get_omega0, set_omega0)
+    omega0 = property(get_omega0, set_omega0)
 
     def update_params(self):
         """Calculate the dependent parameters when the independent values change.
@@ -712,7 +712,7 @@ class SymbolicEq(object):
         ni = sympy.Symbol("ni")
         te = sympy.Symbol("te")
         phi = sympy.Symbol("phi")
-        nu_e = sympy.Symbol("nu_e")
+        nuei_arr = sympy.Symbol("nuei_arr")
 
         if sf:
             # Substitute the scalar constants by numerical values
@@ -746,7 +746,7 @@ class SymbolicEq(object):
         # dv = sympy.Symbol("dv")
         sf = sf + dv
 
-        f = sympy.lambdify((p.r, ni, te, phi, nu_e, p.mu_ii, dv),
+        f = sympy.lambdify((p.r, ni, te, phi, nuei_arr, p.mu_ii, dv),
                            sf)
         return f
 
