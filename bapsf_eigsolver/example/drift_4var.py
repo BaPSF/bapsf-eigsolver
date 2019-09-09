@@ -1,21 +1,21 @@
-Example: Drift wave with temperature fluctuations:
--------------------------------
+#!/usr/bin/env python3
 
 import importlib
+from bapsf_eigsolver import eigsolver
+from bapsf_eigsolver import sym_eqns
 
-from bapsf_eigsolver import eigsolver_4var
-
-importlib.reload(eigsolver_4var)
-
+importlib.reload(eigsolver)
 
 metric = 'cyl'   # choose cylindrical ('cyl') or slab ('cart') geometry
-equation = eigsolver_4var.SymbolicEq(metric) # Derive the eigenvalue equation in symbolic form
+# here you can pass te_fluc = False, otherwise the
+# default value of True is used
+equation = sym_eqns.brag_4var.BragFourVar(metric)
 
-p = eigsolver_4var.PhysParams(Nr=100, np=3, tp='LAPD_nonrotating', mtheta=20.)  # define a set of physical
-                      # parameters for the problem (size, profiles, etc)
+p = eigsolver.PhysParams(Nr=100, np=3, tp='LAPD_nonrotating', m_theta=20.)
+# define a set of physical parameters for the problem (size, profiles, etc)
 
-esolver = eigsolver_4var.EigSolve(equation, p)  # Solve the eigenvalue problem
-eigsolver_4var.plot_omega(esolver)  # Plot profiles and eigenmodes
+esolver = eigsolver.EigSolve(equation, p)  # Solve the eigenvalue problem
+eigsolver.plot_omega(esolver)  # Plot profiles and eigenmodes
 
 # Result:
 # Fastest growing mode: omega= (-0.0656901535535+0.0318964836453j)

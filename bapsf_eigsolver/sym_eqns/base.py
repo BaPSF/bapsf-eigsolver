@@ -12,7 +12,8 @@ class SymEqBase(ABC):
     def __init__(self, metric="cyl"):
 
         self.metric = metric
-
+        self.NVAR = None
+        self.vars = []
         # create symbolic variables and functions
         # * metric is passed to BOUT
         self.varpack = self._create_symbols(self.metric)

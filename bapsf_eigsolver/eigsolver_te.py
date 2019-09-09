@@ -414,7 +414,7 @@ class SymbolicEq(object):
                         p.fN.diff(p.t)                            # dN/dt
                       + bout.DotProd(p.vE, bout.Grad(p.fN, p.x, p.metric))  # vE.Grad(N)
                       + (p.fN*p.fvpar).diff(p.z)                  # div_par Jpar
-                                ) / p.FExp)) #/ p.N0 / p.FExp)
+                                ) / p.FExp)) #/ p.N0 / p.FExp))
         
 
         # Vparallel equation: parallel electron momentum
