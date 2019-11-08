@@ -822,7 +822,7 @@ class EigSolve(object):
 
     def fdiff_matrix(self, sortby):
         """Construct the finite difference matrix of the equations"""
-        
+
         arg_names = self.equation.arguments
         print(arg_names)
         # arg_names[6] = numpy.zeros(self.pvalues.Nr)
