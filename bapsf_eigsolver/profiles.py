@@ -271,6 +271,52 @@ class EqGrid(object):
             ni[0,:] = ((A1-A2)/(1+numpy.exp((rcm-x0)/dx))+A2)*2.6
             ni[1,:] = -2.6*(A1-A2)*numpy.exp((rcm-x0)/dx)/dx/(1+numpy.exp((rcm-x0)/dx))**2
             ni[2,:] = 5.2*(A1-A2)*numpy.exp(2.*(rcm-x0)/dx)/dx**2/(1+numpy.exp((rcm-x0)/dx))**3 - 2.6*(A1-A2)*numpy.exp((rcm-x0)/dx)/dx**2/(1+numpy.exp((rcm-x0)/dx))**2
+            
+        elif p == 'Conor1':
+            #
+            pc=numpy.array([3.6007,-11.8241])# coefficients from POLY_FIT
+            rmin_m = 0.22
+            rmax_m = 0.25
+            #rmin_m = 0.25
+            #rmax_m = 0.29
+            
+            x = numpy.linspace(0.,1.,self.Nr+2) # To make it like BOUT++
+            rfull = x*(rmax_m-rmin_m) + rmin_m   # r in meters - this is how the fit was done
+            rm = rfull[1:-1]
+
+            ni[0,:] = pc[0] + pc[1]*rm
+            ni[1,:] = pc[1]*(rmax_m-rmin_m)
+            
+        elif p == 'Conor2':
+            #
+            pc=numpy.array([3.6341,-11.8881])# coefficients from POLY_FIT
+            rmin_m = 0.22
+            rmax_m = 0.25
+            #rmin_m = 0.25
+            #rmax_m = 0.29
+            
+            x = numpy.linspace(0.,1.,self.Nr+2) # To make it like BOUT++
+            rfull = x*(rmax_m-rmin_m) + rmin_m   # r in meters - this is how the fit was done
+            rm = rfull[1:-1]
+
+            ni[0,:] = pc[0] + pc[1]*rm
+            ni[1,:] = pc[1]*(rmax_m-rmin_m)
+            
+        elif p == 'Conor3':
+            #
+            pc=numpy.array([3.6346,-11.8087])# coefficients from POLY_FIT
+            rmin_m = 0.22
+            rmax_m = 0.25
+            #rmin_m = 0.25
+            #rmax_m = 0.29
+            
+            x = numpy.linspace(0.,1.,self.Nr+2) # To make it like BOUT++
+            rfull = x*(rmax_m-rmin_m) + rmin_m   # r in meters - this is how the fit was done
+            rm = rfull[1:-1]
+
+            ni[0,:] = pc[0] + pc[1]*rm
+            ni[1,:] = pc[1]*(rmax_m-rmin_m)
+
 
         return ni
 
@@ -369,6 +415,55 @@ class EqGrid(object):
             te[0,:] = s(x)
             from . import BOUTppmath
             te[1,:] = BOUTppmath.deriv_full(te[0,:], self.h)
+            
+        elif p == 'Conor1':
+            #
+            pc=numpy.array([1.1859,-0.9436])# coefficients from POLY_FIT
+            rmin_m = 0.22
+            rmax_m = 0.25
+            #pc=numpy.array([2.8797,-7.6827])# coefficients from POLY_FIT
+            #rmin_m = 0.25
+            #rmax_m = 0.29
+            mp = -6
+            
+            x = numpy.linspace(0.,1.,self.Nr+2) # To make it like BOUT++
+            rfull = x*(rmax_m-rmin_m) + rmin_m   # r in meters - this is how the fit was done
+            rm = rfull[1:-1]
+
+            te[0,:] = pc[0] + pc[1]*rm + mp*x[1:-1]*(rmax_m-rmin_m)
+            te[1,:] = pc[1]*(rmax_m-rmin_m) + mp*(rmax_m-rmin_m)
+            
+        elif p == 'Conor2':
+            #
+            pc=numpy.array([1.2031,-0.9572])# coefficients from POLY_FIT
+            rmin_m = 0.22
+            rmax_m = 0.25
+            #pc=numpy.array([2.6277,-6.6763])# coefficients from POLY_FIT
+            #rmin_m = 0.25
+            #rmax_m = 0.29
+            
+            x = numpy.linspace(0.,1.,self.Nr+2) # To make it like BOUT++
+            rfull = x*(rmax_m-rmin_m) + rmin_m   # r in meters - this is how the fit was done
+            rm = rfull[1:-1]
+
+            te[0,:] = pc[0] + pc[1]*rm
+            te[1,:] = pc[1]*(rmax_m-rmin_m)
+            
+        elif p == 'Conor3':
+            #
+            pc=numpy.array([1.2396, -1.1638])# coefficients from POLY_FIT
+            rmin_m = 0.22
+            rmax_m = 0.25
+            #pc=numpy.array([2.6632, -6.8732])# coefficients from POLY_FIT
+            #rmin_m = 0.25
+            #rmax_m = 0.29
+            
+            x = numpy.linspace(0.,1.,self.Nr+2) # To make it like BOUT++
+            rfull = x*(rmax_m-rmin_m) + rmin_m   # r in meters - this is how the fit was done
+            rm = rfull[1:-1]
+
+            te[0,:] = pc[0] + pc[1]*rm
+            te[1,:] = pc[1]*(rmax_m-rmin_m)
 
 
         return te
@@ -475,6 +570,54 @@ class EqGrid(object):
             pnorm = 3.0127 # normalization for Phi0
             s = ProfileFit(r_m, Phi, ra, rb, norm=pnorm) # x=0..1 interval is mapped to r=ra..rb
             phi[0:4,:] = numpy.transpose(s.derivatives(x)[:,0:4])
+            
+        elif p == 'Conor1':
+            #
+            pc=numpy.array([1.2003, -4.5264, 13.2686])# coefficients from POLY_FIT
+            rmin_m = 0.22
+            rmax_m = 0.25
+            #rmin_m = 0.25
+            #rmax_m = 0.29
+            
+            x = numpy.linspace(0.,1.,self.Nr+2) # To make it like BOUT++
+            rfull = x*(rmax_m-rmin_m) + rmin_m   # r in meters - this is how the fit was done
+            rm = rfull[1:-1]
+
+            phi[0,:] = pc[0] + pc[1]*rm + pc[2]*rm**2
+            phi[1,:] = ((pc[1] + 2*pc[2]*rm)*(rmax_m-rmin_m))
+            phi[2,:] = ((2*pc[2])*(rmax_m-rmin_m)**2)
+            
+        elif p == 'Conor2':
+            #
+            pc=numpy.array([1.2836, -5.0223, 13.9059])# coefficients from POLY_FIT
+            rmin_m = 0.22
+            rmax_m = 0.25
+            #rmin_m = 0.25
+            #rmax_m = 0.29
+            
+            x = numpy.linspace(0.,1.,self.Nr+2) # To make it like BOUT++
+            rfull = x*(rmax_m-rmin_m) + rmin_m   # r in meters - this is how the fit was done
+            rm = rfull[1:-1]
+
+            phi[0,:] = pc[0] + pc[1]*rm + pc[2]*rm**2
+            phi[1,:] = ((pc[1] + 2*pc[2]*rm)*(rmax_m-rmin_m))
+            phi[2,:] = ((2*pc[2])*(rmax_m-rmin_m)**2)
+            
+        elif p == 'Conor3':
+            #
+            pc=numpy.array([1.3488, -5.4104, 14.5669])# coefficients from POLY_FIT
+            rmin_m = 0.22
+            rmax_m = 0.25
+            #rmin_m = 0.25
+            #rmax_m = 0.29
+            
+            x = numpy.linspace(0.,1.,self.Nr+2) # To make it like BOUT++
+            rfull = x*(rmax_m-rmin_m) + rmin_m   # r in meters - this is how the fit was done
+            rm = rfull[1:-1]
+
+            phi[0,:] = pc[0] + pc[1]*rm + pc[2]*rm**2
+            phi[1,:] = ((pc[1] + 2*pc[2]*rm)*(rmax_m-rmin_m))
+            phi[2,:] = ((2*pc[2])*(rmax_m-rmin_m)**2)
 
         return phi
  
