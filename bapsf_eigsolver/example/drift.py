@@ -3,6 +3,8 @@
 import importlib
 
 from bapsf_eigsolver import eigsolver
+from bapsf_eigsolver import sym_eqns
+
 
 importlib.reload(eigsolver)
 
@@ -10,7 +12,8 @@ importlib.reload(eigsolver)
 metric = 'cyl'
 
 # Derive the eigenvalue equation in symbolic form
-equation = eigsolver.SymbolicEq(metric)
+equation = sym_eqns.braginskii.Brag(metric)
+# equation = eigsolver.SymbolicEq(metric)
 
 # define a set of physical
 # * parameters for the problem (size, profiles, etc)
