@@ -1,0 +1,7 @@
+# these are dependencies required to use the package
+# ought to mirror 'install_requires' under 'options' in setup.cfg
+-r build.txt
+matplotlib >= 3.3.0
+numpy >= 1.18.1
+scipy
+sympy
