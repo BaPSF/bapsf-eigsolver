@@ -1,0 +1,187 @@
+name: Tests
+
+on:
+  schedule:
+    # run every Sunday at 10:13 am UTC (3:13 am PT)
+    - cron: '13 10 * * 0'
+  push:
+    branches:
+      - master
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+#  base-tests:
+#    name: py${{ matrix.python }} ${{ matrix.name-modifier }} - on ${{ matrix.os }}
+#    runs-on: ${{ matrix.os }}
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        include:
+#          # mark default
+#          - python: '3.10'
+#            os: ubuntu-latest
+#            do-coverage: false
+#            name-modifier: ''
+#
+#          # mark case for coverage reporting
+#          - python: '3.7'
+#            os: ubuntu-latest
+#            do-coverage: true
+#            name-modifier: 'with Coverage'
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 0
+#      - name: Setup Python
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: ${{ matrix.python }}
+#      - name: Install 'bapsflib' dependencies
+#        run: python -m pip install -r requirements/tests.txt
+#      - name: Run tests ${{ matrix.name-modifier }}
+#        run: |
+#          if ${{ matrix.do-coverage }}; then
+#            coverage run -m unittest discover
+#          else
+#            python -m unittest discover
+#          fi
+#        shell: bash
+#      - name: Report coverage
+#        if: ${{ matrix.do-coverage && !failure() }}
+#        uses: codecov/codecov-action@v3.1.4
+#        with:
+#          token: ${{ secrets.CODECOV_TOKEN }}
+#          files: .coverage
+#          fail_ci_if_error: true
+#
+#  tests:
+#    needs: base-tests
+#    name: py${{ matrix.python }} - on ${{ matrix.os }}
+#    runs-on: ${{ matrix.os }}
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        python: ['3.7', '3.8', '3.9', '3.10']
+#        os: [ubuntu-latest, macos-latest, windows-latest]
+#
+#        exclude:
+#          # these were done in base-tests
+#          - python: '3.10'
+#            os: ubuntu-latest
+#          - python: '3.7'
+#            os: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 0
+#      - name: Setup Python
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: ${{ matrix.python }}
+#      - name: Install 'bapsflib' dependencies
+#        run: python -m pip install -r requirements/tests.txt
+#      - name: Run tests
+#        run: |
+#            python -m unittest discover
+#        shell: bash
+#
+#  test-mins:
+#    # test min versions of key dependencies
+#    needs: tests
+#    name: Min Vers | py-${{ matrix.python }} | ${{ matrix.spec-name }}
+#    runs-on: ubuntu-latest
+#
+#    strategy:
+#      fail-fast: true
+#      matrix:
+#        include:
+#          - spec-name: h5py v3.0
+#            min-install: h5py==3.0
+#            python: '3.7'
+#
+#          - spec-name: h5py v3.0 numpy v1.20
+#            min-install: h5py==3.0 numpy==1.20
+#            python: '3.7'
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 0
+#      - name: Setup Python
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: ${{ matrix.python }}
+#      - name: Install 'bapsflib' dependencies
+#        run: |
+#          python -m pip install -r requirements/tests.txt ${{ matrix.min-install }}
+#      - name: Run tests
+#        run: python -m unittest discover
+
+  import-eigsolver:
+    name: Importing bapsf_eigsolver
+#    needs: base-tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: [ '3.7', '3.8', '3.9', '3.10', '3.11' ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install 'bapsf_eigsolver' dependencies
+        run: |
+          python -m pip install -r requirements/install.txt
+      - name: Import 'bapsf_eigsolver'
+        run: |
+          python -c 'import bapsf_eigsolver'
+
+  build-bapsf_eigsolver:
+    name: Packaging
+    runs-on: ubuntu-latest
+    needs:
+#      - test-mins
+      - import-eigsolver
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install requirements
+        run: |
+          pip install --progress-bar off --upgrade pip
+          pip install --progress-bar off -r requirements/install.txt twine
+      - name: Build a binary wheel
+        run: |
+          python setup.py bdist_wheel
+      - name: Build a source tarball
+        run: |
+          python setup.py sdist
+      - name: Twine check
+        run: |
+          twine check dist/*
+      - name: Install bapsf_eigsolver in all variants
+        run: |
+          pip install --progress-bar off .[developer]
+          pip install --progress-bar off -e .[developer]
+          python setup.py develop

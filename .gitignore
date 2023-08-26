@@ -18,5 +18,8 @@
 ._*
 
 # venv
+.venv/
+.venvs/
 venv/
+venvs/
 build/
