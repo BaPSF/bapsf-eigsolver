@@ -112,5 +112,5 @@ rst_prolog = """
 
 def setup(app):
     # add bapsf CSS overrides
-    app.add_stylesheet('bapsf_overrides.css')
+    app.add_css_file("bapsf_overrides.css", priority=600)
     return app
